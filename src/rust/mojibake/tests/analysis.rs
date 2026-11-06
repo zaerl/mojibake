@@ -188,3 +188,79 @@ fn resolved_scripts() {
         ScriptSet::Resolved(vec!["Jpan"])
     );
 }
+
+#[test]
+fn hangul() {
+    use mojibake::hangul;
+
+    assert_eq!(hangul::decompose('가'), Some(('ᄀ', 'ᅡ', None)));
+    assert_eq!(hangul::decompose('힣'), Some(('ᄒ', 'ᅵ', Some('ᇂ'))));
+    assert_eq!(hangul::decompose('a'), None);
+    assert_eq!(hangul::decompose('ᄀ'), None);
+
+    assert_eq!(hangul::compose('ᄀ', 'ᅡ', None), Some('가'));
+    assert_eq!(hangul::compose('ᄒ', 'ᅵ', Some('ᇂ')), Some('힣'));
+    assert_eq!(hangul::compose('a', 'ᅡ', None), None);
+    assert_eq!(hangul::compose('ᄀ', 'ᅡ', Some('a')), None);
+    // U+11A7 is just below the trailing jamo range: the "no trailing consonant" index.
+    assert_eq!(hangul::compose('ᄀ', 'ᅡ', Some('\u{11a7}')), None);
+
+    // Every syllable round-trips.
+    for syllable in '\u{ac00}'..='\u{d7a3}' {
+        let (l, v, t) = hangul::decompose(syllable).unwrap();
+        assert_eq!(hangul::compose(l, v, t), Some(syllable));
+    }
+
+    assert_eq!(
+        hangul::syllable_name('가').as_deref(),
+        Some("HANGUL SYLLABLE GA")
+    );
+    assert_eq!(
+        hangul::syllable_name('힣').as_deref(),
+        Some("HANGUL SYLLABLE HIH")
+    );
+    assert_eq!(hangul::syllable_name('ᄀ'), None);
+
+    #[cfg(feature = "names")]
+    for syllable in ['가', '똠', '힣'] {
+        assert_eq!(hangul::syllable_name(syllable), syllable.name());
+    }
+
+    assert!(hangul::is_syllable('가') && !hangul::is_syllable('ᄀ'));
+    assert!(hangul::is_leading_jamo('ᄀ') && !hangul::is_leading_jamo('ᅡ'));
+    assert!(hangul::is_vowel_jamo('ᅡ') && !hangul::is_vowel_jamo('ᆨ'));
+    assert!(hangul::is_trailing_jamo('ᆨ') && !hangul::is_trailing_jamo('\u{11a7}'));
+    assert!(hangul::is_jamo('ᄀ') && hangul::is_jamo('ᅡ') && hangul::is_jamo('ᆨ'));
+    assert!(!hangul::is_jamo('가') && !hangul::is_jamo('ㄱ'));
+}
+
+#[test]
+fn cjk() {
+    assert!('漢'.is_cjk_ideograph() && !'漢'.is_cjk_extension_ideograph());
+    assert!('\u{3400}'.is_cjk_ideograph() && '\u{3400}'.is_cjk_extension_ideograph());
+    assert!('\u{20000}'.is_cjk_extension_ideograph());
+    assert!('\u{323b0}'.is_cjk_extension_ideograph());
+    assert!(!'\u{f900}'.is_cjk_ideograph()); // compatibility ideograph
+    assert!(!'あ'.is_cjk_ideograph() && !'a'.is_cjk_ideograph());
+}
+
+#[test]
+fn prefixes() {
+    assert_eq!(grapheme_prefix("e\u{301}🇮🇹abc", 0), "");
+    assert_eq!(grapheme_prefix("e\u{301}🇮🇹abc", 1), "e\u{301}");
+    assert_eq!(grapheme_prefix("e\u{301}🇮🇹abc", 2), "e\u{301}🇮🇹");
+    assert_eq!(grapheme_prefix("e\u{301}🇮🇹abc", 5), "e\u{301}🇮🇹abc");
+    assert_eq!(grapheme_prefix("e\u{301}🇮🇹abc", 99), "e\u{301}🇮🇹abc");
+    assert_eq!(grapheme_prefix("", 3), "");
+
+    let text = "Hello, world!";
+    for count in 0..8 {
+        let expected: String = words(text).take(count).collect();
+        assert_eq!(word_prefix(text, count), expected, "{count}");
+    }
+    let text = "👨‍👩‍👧 é x";
+    for count in 0..6 {
+        let expected: String = graphemes(text).take(count).collect();
+        assert_eq!(grapheme_prefix(text, count), expected, "{count}");
+    }
+}

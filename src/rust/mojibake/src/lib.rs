@@ -37,6 +37,7 @@ mod width;
 pub mod bidi;
 pub mod emoji;
 pub mod encoding;
+pub mod hangul;
 
 #[cfg(feature = "collation")]
 pub mod collate;
@@ -58,8 +59,8 @@ pub use language_tag::{Extensions, LanguageTag};
 pub use normalize::{is_normalized, nfkc_casefold, normalize, Form, QuickCheck};
 pub use property::Property;
 pub use segment::{
-    grapheme_count, graphemes, line_breaks, sentence_count, sentences, word_count, words,
-    LineBreak, LineBreaks, Segments,
+    grapheme_count, grapheme_prefix, graphemes, line_breaks, sentence_count, sentences, word_count,
+    word_prefix, words, LineBreak, LineBreaks, Segments,
 };
 pub use str_ext::StrExt;
 pub use width::{terminal_width, truncate_to_width, WidthProfile};

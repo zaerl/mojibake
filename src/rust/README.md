@@ -28,7 +28,7 @@ upper/lowercase mapping. These crates add what it leaves out:
 | Locale casing, titlecase, folding | `to_uppercase(s, Locale::parse("tr")?)`, `to_titlecase`, `casefold` |
 | BCP 47 language tags (RFC 5646) | `LanguageTag::{parse, language, script, region, variants, extensions, private_use, locale}` |
 | Caseless matching (D144-D147) | `caseless_eq`, `StrExt::caseless_eq` |
-| Segmentation (UAX #29, UAX #14) | `graphemes`, `words`, `sentences`, `line_breaks`, counts |
+| Segmentation (UAX #29, UAX #14) | `graphemes`, `words`, `sentences`, `line_breaks`, counts, `grapheme_prefix`, `word_prefix` |
 | Terminal width (UAX #11) | `terminal_width`, `truncate_to_width` |
 | Character properties | `CharExt::{general_category, name, block, script, script_extensions, numeric_value, east_asian_width, emoji_properties}` |
 | `UnicodeData.txt` record | `CharExt::info` → `CharInfo`, `CharExt::{canonical_combining_class, bidi_class, decomposition_type, simple_uppercase, ...}` |
@@ -37,7 +37,8 @@ upper/lowercase mapping. These crates add what it leaves out:
 | Identifiers (UAX #31) | `is_identifier`, `CharExt::{is_id_start, is_xid_start, is_pattern_syntax, ...}` |
 | Emoji sequences (UTS #51) | `emoji::{sequence, is_sequence, is_rgi}` |
 | Collation (UTS #10) | `collate::{compare, sort_key, Collator}` |
-| IDNA (UTS #46) | `idna::{to_ascii, to_unicode}` |
+| IDNA (UTS #46) | `idna::{to_ascii, to_unicode}`, typed `idna::IdnaErrors` flags |
+| Hangul (Unicode 3.12) | `hangul::{compose, decompose, syllable_name, is_syllable, is_jamo, ...}` |
 | Confusables and script sets (UTS #39) | `security::{skeleton, is_confusable, resolved_scripts}` |
 
 ```rust
@@ -138,7 +139,8 @@ This is a scaffold. `mojibake-sys` declares every public function except the var
 layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
 Not done yet:
 
-- expose the remaining APIs in the safe crate: typed IDNA error flags, Hangul and plane helpers,
-  the `_into` variants, and streaming decoders over `mjb_decode_next`
+- expose the remaining APIs in the safe crate: plane names (after `MJB_PLANE_SSP` and
+  `MJB_PLANE_PUA_A` in `src/unicode.h` are fixed to planes 14 and 15), the `_into` variants, and
+  streaming decoders over `mjb_decode_next`
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy

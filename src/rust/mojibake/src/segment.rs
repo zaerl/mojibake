@@ -111,6 +111,38 @@ pub fn sentence_count(s: &str) -> usize {
     ffi::count(s, sys::mjb_sentence_count)
 }
 
+type PrefixLength = unsafe extern "C" fn(*const sys::mjb_text, usize) -> usize;
+
+fn prefix(s: &str, count: usize, call: PrefixLength) -> &str {
+    let text = ffi::text(s);
+    // SAFETY: the text is valid for the duration of the call.
+    let length = unsafe { call(&text, count) };
+
+    // The library returns a segment boundary, which is always a char boundary.
+    s.get(..length).unwrap_or(s)
+}
+
+/// The first `count` extended grapheme clusters of `s`, or all of `s` if it has fewer. One pass,
+/// with no allocation.
+///
+/// ```
+/// assert_eq!(mojibake::grapheme_prefix("e\u{301}🇮🇹abc", 2), "e\u{301}🇮🇹");
+/// ```
+pub fn grapheme_prefix(s: &str, count: usize) -> &str {
+    prefix(s, count, sys::mjb_grapheme_prefix_length)
+}
+
+/// The first `count` segments that [`words`] yields, including spaces and punctuation, or all of
+/// `s` if it has fewer.
+///
+/// ```
+/// // "Hello", ",", " ", "world"
+/// assert_eq!(mojibake::word_prefix("Hello, world!", 4), "Hello, world");
+/// ```
+pub fn word_prefix(s: &str, count: usize) -> &str {
+    prefix(s, count, sys::mjb_word_prefix_length)
+}
+
 /// A line-break opportunity (UAX #14).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum LineBreak {

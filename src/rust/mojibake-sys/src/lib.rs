@@ -149,6 +149,21 @@ pub const MJB_SCRIPT_SET_ALL: mjb_script_set_kind = 2;
 
 pub const MJB_NUMBER_NOT_VALID: c_int = -1;
 
+pub type mjb_idna_error = u32;
+
+pub const MJB_IDNA_ERROR_NONE: mjb_idna_error = 0x0;
+pub const MJB_IDNA_ERROR_PUNYCODE: mjb_idna_error = 0x1;
+pub const MJB_IDNA_ERROR_EMPTY_LABEL: mjb_idna_error = 0x2;
+pub const MJB_IDNA_ERROR_HYPHEN: mjb_idna_error = 0x4;
+pub const MJB_IDNA_ERROR_NOT_NFC: mjb_idna_error = 0x8;
+pub const MJB_IDNA_ERROR_LEADING_MARK: mjb_idna_error = 0x10;
+pub const MJB_IDNA_ERROR_DISALLOWED: mjb_idna_error = 0x20;
+pub const MJB_IDNA_ERROR_STD3: mjb_idna_error = 0x40;
+pub const MJB_IDNA_ERROR_CONTEXTJ: mjb_idna_error = 0x80;
+pub const MJB_IDNA_ERROR_BIDI: mjb_idna_error = 0x100;
+pub const MJB_IDNA_ERROR_LABEL_LENGTH: mjb_idna_error = 0x200;
+pub const MJB_IDNA_ERROR_DOMAIN_LENGTH: mjb_idna_error = 0x400;
+
 pub const MJB_PR_BIDI_CLASS_NOT_SET: mjb_bidi_class = 0;
 pub const MJB_PR_BIDI_CLASS_L: mjb_bidi_class = 1;
 pub const MJB_PR_BIDI_CLASS_R: mjb_bidi_class = 2;
@@ -601,7 +616,7 @@ mod layout {
     }
 
     macro_rules! check_values {
-        ($($name:ident => $probe:ident),* $(,)?) => {
+        ($($name:expr => $probe:ident),* $(,)?) => {
             extern "C" {
                 $(
                     fn $probe() -> c_int;
@@ -641,6 +656,17 @@ mod layout {
             MJB_SCRIPT_SET_ALL => mjb_rs_value_MJB_SCRIPT_SET_ALL,
             MJB_IDENTIFIER_NFKC => mjb_rs_value_MJB_IDENTIFIER_NFKC,
             MJB_NUMBER_NOT_VALID => mjb_rs_value_MJB_NUMBER_NOT_VALID,
+            MJB_IDNA_ERROR_PUNYCODE as c_int => mjb_rs_value_MJB_IDNA_ERROR_PUNYCODE,
+            MJB_IDNA_ERROR_EMPTY_LABEL as c_int => mjb_rs_value_MJB_IDNA_ERROR_EMPTY_LABEL,
+            MJB_IDNA_ERROR_HYPHEN as c_int => mjb_rs_value_MJB_IDNA_ERROR_HYPHEN,
+            MJB_IDNA_ERROR_NOT_NFC as c_int => mjb_rs_value_MJB_IDNA_ERROR_NOT_NFC,
+            MJB_IDNA_ERROR_LEADING_MARK as c_int => mjb_rs_value_MJB_IDNA_ERROR_LEADING_MARK,
+            MJB_IDNA_ERROR_DISALLOWED as c_int => mjb_rs_value_MJB_IDNA_ERROR_DISALLOWED,
+            MJB_IDNA_ERROR_STD3 as c_int => mjb_rs_value_MJB_IDNA_ERROR_STD3,
+            MJB_IDNA_ERROR_CONTEXTJ as c_int => mjb_rs_value_MJB_IDNA_ERROR_CONTEXTJ,
+            MJB_IDNA_ERROR_BIDI as c_int => mjb_rs_value_MJB_IDNA_ERROR_BIDI,
+            MJB_IDNA_ERROR_LABEL_LENGTH as c_int => mjb_rs_value_MJB_IDNA_ERROR_LABEL_LENGTH,
+            MJB_IDNA_ERROR_DOMAIN_LENGTH as c_int => mjb_rs_value_MJB_IDNA_ERROR_DOMAIN_LENGTH,
             MJB_PR_BIDI_CLASS_L => mjb_rs_value_MJB_PR_BIDI_CLASS_L,
             MJB_PR_BIDI_CLASS_R => mjb_rs_value_MJB_PR_BIDI_CLASS_R,
             MJB_PR_BIDI_CLASS_AL => mjb_rs_value_MJB_PR_BIDI_CLASS_AL,
