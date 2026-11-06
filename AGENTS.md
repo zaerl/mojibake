@@ -147,6 +147,8 @@ finishing:
 - `make ctest` / `make ctest-cpp` - run the registered CMake tests, including CLI output checks
   (`tests/shell/`) and the embedded-project integration test (`tests/cmake/`)
 - `make test-rust` - run rustfmt, clippy, and the Rust crates' tests with features on and off
+- `make package-rust` - vendor the C sources into `src/rust/mojibake-sys/csrc/` and run
+  `cargo package` and `cargo publish --dry-run` for both crates (nothing is published)
 - `make test-docker` - build and test in the Alpine Linux container
 - `FUZZ_TIME=60 make fuzz` - fuzz the public API with libFuzzer in Docker (`fuzz/fuzz.c`)
 
@@ -395,3 +397,4 @@ validation commands were run:
 | TypeScript API | `(cd src/api && npm run typecheck)` and `make test-wasm` |
 | CLI | `make build` and `make ctest` |
 | Rust crates, or C structs and enums they mirror | `make test-rust` |
+| Rust packaging, or the C source file set | `make package-rust` |
