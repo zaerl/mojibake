@@ -413,12 +413,6 @@ static void fuzz_format_apis(const char *buffer, size_t byte_length, uint8_t var
     }
 }
 
-/**
- * The libFuzzer harness. The first byte selects the API under test and some of its parameters,
- * the second byte selects the input encoding and locale, the rest is the input buffer.
- *
- * Build with: make fuzz
- */
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if(size < 2) {
         return 0;

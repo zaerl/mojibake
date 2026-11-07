@@ -590,12 +590,7 @@ static inline uint8_t prev_nonremoved_level(const mjb_bidi_work *work, size_t po
     return para_level;
 }
 
-/**
- * Collect an Isolating Run Sequence (IRS) beginning at |start| (a non-removed char at embedding
- * level |level|). Follows LRI/RLI/FSI -> matching-PDI hops per TR9 3.3.2. Returns the number of
- * indices stored in |irs_idx|, and sets *out_scan_end to the position of the first non-removed char
- * OUTSIDE the IRS (different level), or to |count| if the IRS reaches the end.
- */
+// Collect an Isolating Run Sequence (IRS)
 static size_t collect_irs(const mjb_bidi_work *work, size_t count, size_t start, uint8_t level,
     size_t *irs_idx, size_t irs_cap, size_t *out_scan_end) {
     size_t irs_len = 0;
@@ -902,11 +897,6 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count) {
                     break; // Stack overflow, stop collecting per spec.
                 }
             } else if(bstop > 0) {
-                /*
-                    Search stack top-to-bottom for matching open bracket.
-                    Include canonical equivalents (UAX#9 6.3):
-                    U+2329 <-> U+3008 and U+232A <-> U+3009.
-                */
                 int found = -1;
 
                 for(int s = bstop - 1; s >= 0; --s) {
@@ -929,8 +919,7 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count) {
             }
         }
 
-        // Phase 2: sort pairs by open_irs (logical / outer-first order).
-        // Insertion sort, max 63 elements.
+        // Phase 2
         for(int i = 1; i < pair_count; ++i) {
             mjb_bracket_pair tmp = pairs[i];
             int k = i;
@@ -943,12 +932,7 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count) {
             pairs[k] = tmp;
         }
 
-        /*
-            Phase 3: process pairs in outer-first (logical) order.
-            UAX#9 N0: "consider the actual types (including those resulting from this resolution)"
-            Outer brackets resolved first so inner brackets see the updated types of their
-            surrounding context.
-        */
+        // Phase 3
         for(int p = 0; p < pair_count; ++p) {
             size_t open_idx = pairs[p].open_idx;
             size_t close_idx = pairs[p].close_idx;
@@ -1252,10 +1236,6 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direc
     // Pass 2.
     pass2_explicit(work, count, para_level);
 
-    /*
-        TR9 3.3.2: LRI/RLI/FSI/PDI are treated as ON in W, N0, N1/N2, I rules.
-        Remap them now so all subsequent passes see neutral (ON) for these chars.
-    */
     for(size_t i = 0; i < count; ++i) {
         if(!work[i].removed) {
             mjb_bidi_class bc = work[i].bidi;
@@ -1279,11 +1259,6 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direc
     // Pass 6.
     pass6_implicit(work, count);
 
-    /*
-        L1: Reset segment/paragraph separators and their preceding whitespace/isolate chars to
-        para_level (TR9 L1). This must be applied treating the whole paragraph as one line.
-        Step 1: S and B chars, reset to para_level; scan backward to also reset WS / isolate chars.
-    */
     for(size_t i = 0; i < count; ++i) {
         if(work[i].removed) {
             continue;
@@ -1401,12 +1376,6 @@ MJB_EXPORT void mjb_bidi_paragraph_free(mjb_bidi_paragraph *paragraph) {
     paragraph->count = 0;
 }
 
-/*
-    UAX #9 L1 item 4: return the logical index where the trailing run of whitespace and isolate
-    formatting characters of the line [line_start, line_end) begins (line_end when there is none).
-    Segment and paragraph separators are included: L1 already resets them and the whitespace before
-    them. Characters removed by X9 are not stored in the paragraph, so they are ignored here.
-*/
 static size_t bidi_line_trailing_start(const mjb_bidi_paragraph *paragraph, size_t line_start,
     size_t line_end) {
     size_t i = line_end;
@@ -1445,13 +1414,6 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
         visual_order[i] = line_start + i;
     }
 
-    /*
-        L1: the paragraph levels already have L1 applied as if the whole paragraph were one line
-        (segment/paragraph separators, the whitespace before them, and the trailing whitespace of
-        the paragraph). The only line-dependent part is item 4: whitespace and isolate formatting
-        characters at the end of this line are reset to the paragraph level. Work on a copy so the
-        paragraph stays untouched.
-    */
     size_t trailing_start = bidi_line_trailing_start(paragraph, line_start, line_end);
 
     uint8_t *levels = (uint8_t *)mjb_alloc(n * sizeof(uint8_t));
@@ -1538,12 +1500,6 @@ MJB_EXPORT mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph,
         return MJB_STATUS_OK;
     }
 
-    /*
-        The runs use the line levels mjb_bidi_reorder_line reorders with, so the L1 reset of the
-        trailing whitespace of the line has to be recomputed here (the paragraph is const and the
-        API carries no line levels). visual_order is a permutation of the line [line_start,
-        line_end), so its largest index gives line_end; the smallest gives line_start.
-    */
     size_t line_start = SIZE_MAX;
     size_t line_end = 0;
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `Makefile.nmake` gains the `test-rust`, `vendor-rust`, and `package-rust` targets
 
 ### Changed
 
@@ -1028,7 +1029,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/zaerl/mojibake/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/zaerl/mojibake/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/zaerl/mojibake/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/zaerl/mojibake/compare/v0.4.1...v0.4.2

@@ -249,10 +249,6 @@ watch-site: build-api src\site\index.html
 watch-api: sync-api-wasm
 	@cd src\api && npm run dev
 
-# Serve WASM site with live reload
-serve: wasm generate-site
-	@cd $(WASM_BUILD_DIR)\src && python -m http.server
-
 # Check C and C++ formatting with clang-format
 lint:
 	@for /F "delims=" %%f in ('git ls-files "*.c" "*.h" "*.cpp" "*.hpp" ":!tests/attractor.h"') do @$(CLANG_FORMAT) --dry-run --Werror "%%f" || exit 1
@@ -371,6 +367,31 @@ ctest-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
+# Run the Rust crates' tests, with every optional feature on and then off, plus clippy and rustfmt
+test-rust:
+	cd src\rust && cargo fmt --check
+	cd src\rust && cargo clippy --all-targets -- -D warnings
+	cd src\rust && cargo clippy --all-targets -p mojibake-rs --no-default-features -- -D warnings
+	cd src\rust && cargo test
+	cd src\rust && cargo test -p mojibake-rs --no-default-features
+
+# Copy the C sources into src\rust\mojibake-sys\csrc (git-ignored) so the crate is self-contained
+vendor-rust:
+	@if exist src\rust\mojibake-sys\csrc rmdir /S /Q src\rust\mojibake-sys\csrc
+	@mkdir src\rust\mojibake-sys\csrc
+	@copy /Y src\*.c src\rust\mojibake-sys\csrc\ >NUL
+	@copy /Y src\*.h src\rust\mojibake-sys\csrc\ >NUL
+	@copy /Y src\CMakeLists.txt src\rust\mojibake-sys\csrc\ >NUL
+	@copy /Y LICENSE src\rust\mojibake-sys\csrc\ >NUL
+
+# Package both Rust crates and verify that each builds from its .crate file. Nothing is published.
+# Cargo counts the git-ignored csrc\ copy as uncommitted, so --allow-dirty is always passed. The
+# check below stands in for Cargo's: the packaged sources must be committed, unless ALLOW_DIRTY=1
+package-rust: vendor-rust
+	@if not "$(ALLOW_DIRTY)"=="1" for /F "delims=" %%l in ('git status --porcelain --untracked-files^=all -- src LICENSE') do @(git status --short --untracked-files=all -- src LICENSE & echo Commit these changes first, or set ALLOW_DIRTY=1 & exit 1)
+	cd src\rust && cargo package --workspace --locked --allow-dirty $(ARGS)
+	cd src\rust && cargo publish --workspace --locked --dry-run --allow-dirty $(ARGS)
+
 # Run tests in Docker container
 test-docker:
 	@docker build -t mojibake .
@@ -440,6 +461,9 @@ help:
 	@echo   coverage                - Run coverage analysis
 	@echo   ctest                   - Build and run tests using CTest
 	@echo   ctest-cpp               - Build and run C++ tests using CTest
+	@echo   test-rust               - Test the Rust crates in src\rust with cargo
+	@echo   vendor-rust             - Copy the C sources into the mojibake-sys crate
+	@echo   package-rust            - Vendor, package and dry-run publish the Rust crates
 	@echo   generate                - Regenerate source files
 	@echo   generate-locale         - Generate locale file
 	@echo   generate-site           - Generate site
@@ -469,5 +493,5 @@ help:
 	@echo   fuzz                    - Fuzz the public API with libFuzzer in Docker
 	@echo   update-version          - Update version in source files
 	@echo   wasm                    - Build the project for WebAssembly
-	@echo   watch-api               - Watch JavaScript API files
+	@echo   watch-api               - Watch API files, regenerate on changes and run tests
 	@echo   watch-site              - Watch site files, regenerate on changes and serve at localhost:6251

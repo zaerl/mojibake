@@ -55,12 +55,6 @@ static mjb_codepoint bidi_class_codepoint(const char *name) {
     return 0;
 }
 
-/*
- * Reference L1 + L2 for the line [start, end) of a single-line conformance case. levels are the
- * expected (paragraph-wide) levels and trailing marks WS, S, B and isolate formatting characters,
- * both indexed by non-removed position. The expected levels already have L1 applied for the end
- * of the paragraph, so a line only needs its own trailing run reset (UAX #9 L1 item 4).
- */
 static void reference_line_order(const uint8_t *levels, const bool *trailing, size_t start,
     size_t end, uint8_t para_level, uint8_t *line_levels, size_t *order) {
     size_t n = end - start;
@@ -114,10 +108,6 @@ static void reference_line_order(const uint8_t *levels, const bool *trailing, si
     }
 }
 
-/*
- * Check mjb_bidi_reorder_line and mjb_bidi_line_runs for the line [start, end) of para against
- * the reference L1 + L2 above.
- */
 static bool check_line(const mjb_bidi_paragraph *para, const uint8_t *levels, const bool *trailing,
     size_t start, size_t end) {
     uint8_t line_levels[64];
@@ -164,11 +154,6 @@ static bool check_line(const mjb_bidi_paragraph *para, const uint8_t *levels, co
     return covered == n;
 }
 
-/*
- * BidiTest.txt: data lines are sequences of Bidi_Class names, checked against the current
- * @Levels and @Reorder directives for each paragraph direction in the bitset
- * (1 = auto-LTR, 2 = LTR, 4 = RTL).
- */
 static void read_bidi_class_test_file(const char *filename) {
     FILE *file = fopen(filename, "r");
 

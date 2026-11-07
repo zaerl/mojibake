@@ -446,4 +446,5 @@ help:
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"
 	@echo "  update-version          - Update version in source files"
 	@echo "  wasm                    - Build the project for WebAssembly"
+	@echo "  watch-api               - Watch API files, regenerate on changes and run tests"
 	@echo "  watch-site              - Watch site files, regenerate on changes and serve at localhost:6251"

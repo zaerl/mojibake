@@ -145,7 +145,7 @@ MJB_LOCAL size_t mjb_hangul_compose_buffer(mjb_buffer_character *characters,
             }
         }
 
-        // if neither case was true, just add the character
+        // If neither case was true, just add the character
         last = ch;
         characters[len++] = characters[i];
     }

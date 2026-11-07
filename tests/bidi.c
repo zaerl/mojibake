@@ -190,13 +190,7 @@ static void read_bidi_test_file(const char *filename) {
             ++non_removed_idx;
         }
 
-        /*
-         * Check 3: visual order after L2 reordering.
-         *
-         * expected_order[v] is an index into the ORIGINAL codepoint sequence (field 0),
-         * counting x-chars. visual_order[v] is an index into para.chars[] which only contains
-         * non-x chars. Build orig_pos[] to map non-x index -> original position for comparison.
-         */
+        // Check 3: visual order after L2 reordering.
         if(non_removed > 0 && order_count == non_removed && para.count == non_removed) {
             size_t orig_pos[256];
             size_t nri = 0;
