@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.7.0] - 2026-11-10
+Codename: [LATIN SMALL LETTER P]
+
+### Added
 - `Makefile.nmake` gains the `test-rust`, `vendor-rust`, and `package-rust` targets
 - Rust: `Script` and `Block` types, an exact `NumericValue` with its `NumericType`,
   `Form::quick_check`, `collate::SortKey`, `Collator::{sort, sort_by_key, try_compare}`,
@@ -38,8 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   notes moved to the "Rust crates" section of `CONTRIBUTING.md`
 
 ### Fixed
+- Old Rust dependencies on readme file
+- Missing Rust dependencies update
+- Missing watch-api on Makefile help
 
-## [0.6.0]
+## [0.6.0] - 2026-11-06
 Codename: [GRAVE ACCENT]
 
 ### Added
@@ -143,7 +155,7 @@ Codename: [GRAVE ACCENT]
 - A UTF-16 code unit following an unpaired high surrogate was swallowed together with the
   surrogate instead of being decoded on its own
 
-## [0.5.1]
+## [0.5.1] - 2026-10-23
 Codename: [LATIN CAPITAL LETTER Q]
 
 ### Added
@@ -182,7 +194,7 @@ Codename: [LATIN CAPITAL LETTER Q]
 ### Fixed
 - Removed obsolete header file
 
-## [0.5.0]
+## [0.5.0] - 2026-10-19
 Codename: [LATIN CAPITAL LETTER P]
 
 ### Added
@@ -1054,7 +1066,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/zaerl/mojibake/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/zaerl/mojibake/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/zaerl/mojibake/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/zaerl/mojibake/compare/v0.4.2...v0.5.0

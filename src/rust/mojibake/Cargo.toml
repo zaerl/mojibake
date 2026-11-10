@@ -30,7 +30,7 @@ security = ["mojibake-sys/security"]
 serde = ["dep:serde"]
 
 [dependencies]
-mojibake-sys = { path = "../mojibake-sys", version = "0.6.0", default-features = false }
+mojibake-sys = { path = "../mojibake-sys", version = "0.7.0", default-features = false }
 serde = { version = "1", default-features = false, features = ["std"], optional = true }
 
 # Document every feature on docs.rs. Its nightly build sets `--cfg docsrs`, which turns on the

@@ -1,7 +1,7 @@
 ---
 name: update-version
 description: Update the project version following semantic versioning
-version: 0.6.0
+version: 0.7.0
 author: Claude
 tags: [version, release, mojibake]
 ---
