@@ -26,6 +26,10 @@ impl WidthProfile {
 }
 
 /// The estimated terminal-cell width of printable, single-line text.
+///
+/// # Panics
+///
+/// If the width overflows `usize`, which a string that fits in memory cannot reach.
 pub fn terminal_width(s: &str, profile: WidthProfile) -> usize {
     let text = ffi::text(s);
     let mut width = 0;
@@ -40,7 +44,7 @@ pub fn terminal_width(s: &str, profile: WidthProfile) -> usize {
             std::ptr::null_mut(),
         )
     };
-    debug_assert_eq!(status, sys::MJB_STATUS_OK);
+    ffi::expect_ok(status);
 
     width
 }

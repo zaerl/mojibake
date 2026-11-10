@@ -2,12 +2,17 @@
 //
 // This file is distributed under the MIT License. See LICENSE for details.
 
+use std::fmt;
+use std::str::FromStr;
+
 use mojibake_sys as sys;
 
 use crate::bidi::BidiClass;
+use crate::error::Error;
 use crate::ffi;
 use crate::plane::Plane;
 use crate::property::Property;
+use crate::script::{Block, Script};
 
 /// The `General_Category` property of a character.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -91,9 +96,77 @@ impl GeneralCategory {
             .unwrap_or(Self::Unassigned)
     }
 
+    const NAMES: [&'static str; 30] = [
+        "Unassigned",
+        "Uppercase_Letter",
+        "Lowercase_Letter",
+        "Titlecase_Letter",
+        "Modifier_Letter",
+        "Other_Letter",
+        "Nonspacing_Mark",
+        "Spacing_Mark",
+        "Enclosing_Mark",
+        "Decimal_Number",
+        "Letter_Number",
+        "Other_Number",
+        "Connector_Punctuation",
+        "Dash_Punctuation",
+        "Open_Punctuation",
+        "Close_Punctuation",
+        "Initial_Punctuation",
+        "Final_Punctuation",
+        "Other_Punctuation",
+        "Math_Symbol",
+        "Currency_Symbol",
+        "Modifier_Symbol",
+        "Other_Symbol",
+        "Space_Separator",
+        "Line_Separator",
+        "Paragraph_Separator",
+        "Control",
+        "Format",
+        "Surrogate",
+        "Private_Use",
+    ];
+
     /// The two-letter property value alias, such as `"Lu"`.
     pub fn abbreviation(self) -> &'static str {
         Self::ABBREVIATIONS[self as usize]
+    }
+
+    /// The long property value alias, such as `"Uppercase_Letter"`.
+    pub fn name(self) -> &'static str {
+        Self::NAMES[self as usize]
+    }
+}
+
+impl fmt::Display for GeneralCategory {
+    /// Writes the two-letter alias, such as `Lu`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.abbreviation())
+    }
+}
+
+impl FromStr for GeneralCategory {
+    type Err = Error;
+
+    /// Parse a two-letter alias such as `"Lu"` or a long alias such as `"Uppercase_Letter"`.
+    /// Long aliases match loosely (UAX44-LM3): case, spaces, `-`, and `_` are ignored. Returns
+    /// [`Error::NotFound`] for any other string.
+    fn from_str(s: &str) -> Result<Self, Error> {
+        let loose = |name: &str| -> String {
+            name.chars()
+                .filter(|c| !matches!(c, ' ' | '-' | '_'))
+                .map(|c| c.to_ascii_lowercase())
+                .collect()
+        };
+        let wanted = loose(s);
+
+        Self::ALL
+            .iter()
+            .copied()
+            .find(|category| category.abbreviation() == s || loose(category.name()) == wanted)
+            .ok_or(Error::NotFound)
     }
 }
 
@@ -188,6 +261,92 @@ impl DecompositionType {
     }
 }
 
+/// How a [`NumericValue`] is used (the `Numeric_Type` property).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum NumericType {
+    /// A decimal digit of a positional number system, such as `'٤'` (4).
+    Decimal,
+    /// A digit that is not used positionally, such as `'²'` (2).
+    Digit,
+    /// Any other number, such as `'Ⅻ'` (12) or `'½'` (1/2).
+    Numeric,
+}
+
+/// The exact `Numeric_Value` of a character, as a fraction, with its `Numeric_Type`.
+///
+/// ```
+/// use mojibake::{CharExt, NumericType};
+///
+/// let half = '½'.numeric_value().unwrap();
+/// assert_eq!((half.numerator, half.denominator), (1, 2));
+/// assert_eq!(half.numeric_type, NumericType::Numeric);
+/// assert_eq!(half.as_f64(), 0.5);
+/// assert_eq!(half.to_string(), "1/2");
+///
+/// assert_eq!('٤'.numeric_value().unwrap().as_integer(), Some(4));
+/// assert_eq!('A'.numeric_value(), None);
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct NumericValue {
+    /// The `Numeric_Type` of the character.
+    pub numeric_type: NumericType,
+    /// The numerator, negative for a negative value such as `'༳'` (-1/2).
+    pub numerator: i64,
+    /// The denominator, 1 for an integer.
+    pub denominator: u64,
+}
+
+impl NumericValue {
+    /// Parse a `UnicodeData.txt` numeric field such as `"5"`, `"-1/2"`, or `"1/160"`, with the
+    /// decimal and digit fields that give its type.
+    fn new(field: &str, decimal: std::ffi::c_int, digit: std::ffi::c_int) -> Option<Self> {
+        let (numerator, denominator) = match field.split_once('/') {
+            Some((numerator, denominator)) => (numerator.parse().ok()?, denominator.parse().ok()?),
+            None => (field.parse().ok()?, 1),
+        };
+
+        if denominator == 0 {
+            return None;
+        }
+
+        let numeric_type = if (0..=9).contains(&decimal) {
+            NumericType::Decimal
+        } else if (0..=9).contains(&digit) {
+            NumericType::Digit
+        } else {
+            NumericType::Numeric
+        };
+
+        Some(Self {
+            numeric_type,
+            numerator,
+            denominator,
+        })
+    }
+
+    /// The value as a floating-point number. Fractions such as 1/3 are rounded.
+    #[allow(clippy::cast_precision_loss)] // Unicode numeric values fit an f64 mantissa.
+    pub fn as_f64(self) -> f64 {
+        self.numerator as f64 / self.denominator as f64
+    }
+
+    /// The value if it is an integer, as for `'Ⅻ'` (12), or `None` for a fraction.
+    pub fn as_integer(self) -> Option<i64> {
+        (self.denominator == 1).then_some(self.numerator)
+    }
+}
+
+impl fmt::Display for NumericValue {
+    /// Writes the value as in `UnicodeData.txt`: `12`, `1/2`, or `-1/2`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.denominator == 1 {
+            write!(f, "{}", self.numerator)
+        } else {
+            write!(f, "{}/{}", self.numerator, self.denominator)
+        }
+    }
+}
+
 /// The `UnicodeData.txt` record of an assigned character, read in one lookup by
 /// [`CharExt::info`].
 ///
@@ -197,10 +356,10 @@ impl DecompositionType {
 ///
 /// let info = '½'.info().unwrap();
 /// assert_eq!(info.decomposition_type, Some(DecompositionType::Fraction));
-/// assert_eq!(info.numeric_value, Some(0.5));
+/// assert_eq!(info.numeric_value.unwrap().as_f64(), 0.5);
 /// assert_eq!(info.bidi_class, BidiClass::OtherNeutral);
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub struct CharInfo {
     /// `General_Category`.
@@ -218,7 +377,7 @@ pub struct CharInfo {
     /// The value of a digit (`Numeric_Type=Decimal` or `Digit`), such as 2 for `'²'`.
     pub digit_value: Option<u8>,
     /// `Numeric_Value`, as in [`CharExt::numeric_value`].
-    pub numeric_value: Option<f64>,
+    pub numeric_value: Option<NumericValue>,
     /// `Simple_Uppercase_Mapping`: the character itself when it has none.
     pub simple_uppercase: char,
     /// `Simple_Lowercase_Mapping`: the character itself when it has none.
@@ -249,7 +408,7 @@ impl CharInfo {
             decomposition_type: DecompositionType::from_raw(raw.decomposition),
             decimal_value: digit(raw.decimal),
             digit_value: digit(raw.digit),
-            numeric_value: parse_numeric(&ffi::array_str(&raw.numeric)),
+            numeric_value: NumericValue::new(&ffi::array_str(&raw.numeric), raw.decimal, raw.digit),
             simple_uppercase,
             simple_lowercase: mapping(raw.lowercase, c),
             simple_titlecase: mapping(raw.titlecase, simple_uppercase),
@@ -264,16 +423,6 @@ fn info(c: char) -> Option<sys::mjb_character> {
     let status = unsafe { sys::mjb_codepoint_info(c as u32, &mut character) };
 
     (status == sys::MJB_STATUS_OK).then_some(character)
-}
-
-/// Parse a `UnicodeData.txt` numeric field such as `"5"`, `"-1/2"`, or `"1/160"`.
-fn parse_numeric(field: &str) -> Option<f64> {
-    match field.split_once('/') {
-        Some((numerator, denominator)) => {
-            Some(numerator.parse::<f64>().ok()? / denominator.parse::<f64>().ok()?)
-        }
-        None => field.parse().ok(),
-    }
 }
 
 /// Unicode character properties that `char` does not provide.
@@ -305,12 +454,13 @@ pub trait CharExt {
     /// The character name, such as `"LATIN SMALL LETTER E WITH ACUTE"`, if it has one.
     #[cfg(feature = "names")]
     fn name(self) -> Option<String>;
-    /// The name of the block that contains the character, such as `"Basic Latin"`.
-    fn block(self) -> Option<String>;
-    /// The ISO 15924 code of the character's `Script`, such as `"Latn"`.
-    fn script(self) -> Option<&'static str>;
-    /// The `Numeric_Value` of the character: `'Ⅻ'` is 12, `'½'` is 0.5.
-    fn numeric_value(self) -> Option<f64>;
+    /// The block that contains the character, such as `Basic Latin`. See [`Block::of`].
+    fn block(self) -> Option<Block>;
+    /// The `Script` of the character, such as [`Script`] `Latn` for `'a'`. Characters shared by
+    /// several scripts are [`Script::COMMON`], and unassigned ones [`Script::UNKNOWN`].
+    fn script(self) -> Option<Script>;
+    /// The exact `Numeric_Value` of the character: `'Ⅻ'` is 12, `'½'` is 1/2.
+    fn numeric_value(self) -> Option<NumericValue>;
     /// The `East_Asian_Width` of the character.
     fn east_asian_width(self) -> Option<EastAsianWidth>;
     /// The emoji properties of the character.
@@ -338,9 +488,9 @@ pub trait CharExt {
     fn is_pattern_syntax(self) -> bool;
     /// UAX #31 `Pattern_White_Space`.
     fn is_pattern_white_space(self) -> bool;
-    /// The ISO 15924 codes of the character's `Script_Extensions`, or of its `Script` when it has
-    /// no explicit extensions: `'ー'` (U+30FC) is used by both `"Hira"` and `"Kana"`.
-    fn script_extensions(self) -> Vec<&'static str>;
+    /// The character's `Script_Extensions`, or its `Script` when it has no explicit
+    /// extensions: `'ー'` (U+30FC) is used by both `Hira` and `Kana`.
+    fn script_extensions(self) -> Vec<Script>;
     /// The value of a binary property, such as `Alphabetic`. False for a non-binary property.
     fn has_property(self, property: Property) -> bool;
     /// The value of an enumerated property in the C library's property table, as the raw C enum
@@ -402,21 +552,16 @@ impl CharExt for char {
             .filter(|name| !name.is_empty())
     }
 
-    fn block(self) -> Option<String> {
-        // SAFETY: mjb_block_info is plain data; all-zero is a valid value.
-        let mut block: sys::mjb_block_info = unsafe { std::mem::zeroed() };
-        // SAFETY: the pointer is valid for the duration of the call.
-        let status = unsafe { sys::mjb_codepoint_block(self as u32, &mut block) };
-
-        (status == sys::MJB_STATUS_OK).then(|| ffi::array_str(&block.name))
+    fn block(self) -> Option<Block> {
+        Block::of(self)
     }
 
-    fn script(self) -> Option<&'static str> {
-        // SAFETY: mjb_script_code returns NULL or a static string.
-        unsafe { ffi::static_str(sys::mjb_script_code(sys::mjb_codepoint_script(self as u32))) }
+    fn script(self) -> Option<Script> {
+        // SAFETY: a pure function of its argument.
+        Script::from_raw(unsafe { sys::mjb_codepoint_script(self as u32) })
     }
 
-    fn numeric_value(self) -> Option<f64> {
+    fn numeric_value(self) -> Option<NumericValue> {
         // SAFETY: mjb_numeric_value is plain data; all-zero is a valid value.
         let mut value: sys::mjb_numeric_value = unsafe { std::mem::zeroed() };
         // SAFETY: the pointer is valid for the duration of the call.
@@ -426,7 +571,7 @@ impl CharExt for char {
             return None;
         }
 
-        parse_numeric(&ffi::array_str(&value.numeric))
+        NumericValue::new(&ffi::array_str(&value.numeric), value.decimal, value.digit)
     }
 
     fn east_asian_width(self) -> Option<EastAsianWidth> {
@@ -523,7 +668,7 @@ impl CharExt for char {
         unsafe { sys::mjb_codepoint_is_pattern_white_space(self as u32) }
     }
 
-    fn script_extensions(self) -> Vec<&'static str> {
+    fn script_extensions(self) -> Vec<Script> {
         ffi::scripts(|scripts, count| {
             // SAFETY: `count` is valid, and `scripts` is NULL or has room for `count` values.
             unsafe { sys::mjb_codepoint_script_extensions(self as u32, scripts, count) }

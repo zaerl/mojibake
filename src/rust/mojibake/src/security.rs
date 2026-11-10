@@ -8,6 +8,7 @@ use mojibake_sys as sys;
 
 use crate::error::{check, Result};
 use crate::ffi::{self, Output};
+use crate::script::Script;
 
 /// The confusable skeleton of `s` (UTS #39 section 4). Two strings whose skeletons are equal are
 /// visually confusable.
@@ -30,9 +31,9 @@ pub enum ScriptSet {
     /// Every script resolves the string: it is empty or holds only `Common` and `Inherited`
     /// characters.
     All,
-    /// The ISO 15924 codes of the scripts that resolve the string. It may include the
-    /// writing-system values `Hanb`, `Jpan`, and `Kore`.
-    Resolved(Vec<&'static str>),
+    /// The scripts that resolve the string. It may include the writing-system values `Hanb`,
+    /// `Jpan`, and `Kore`.
+    Resolved(Vec<Script>),
     /// No script resolves the string: it is mixed-script.
     Empty,
 }
@@ -48,8 +49,10 @@ impl ScriptSet {
 ///
 /// ```
 /// use mojibake::security::{resolved_scripts, ScriptSet};
+/// use mojibake::Script;
 ///
-/// assert_eq!(resolved_scripts("Circle").unwrap(), ScriptSet::Resolved(vec!["Latn"]));
+/// let latin = Script::from_code("Latn").unwrap();
+/// assert_eq!(resolved_scripts("Circle").unwrap(), ScriptSet::Resolved(vec![latin]));
 /// assert!(resolved_scripts("Сirclе").unwrap().is_mixed_script()); // Cyrillic С and е
 /// assert_eq!(resolved_scripts("123").unwrap(), ScriptSet::All);
 /// ```
@@ -71,7 +74,20 @@ pub fn resolved_scripts(s: &str) -> Result<ScriptSet> {
 }
 
 /// True if `a` and `b` are visually confusable, such as `"paypal"` and `"pаypal"` (Cyrillic а).
+///
+/// # Panics
+///
+/// If the library cannot allocate memory. [`try_is_confusable`] returns the error instead.
 pub fn is_confusable(a: &str, b: &str) -> bool {
+    try_is_confusable(a, b).unwrap_or_else(|error| panic!("mojibake: {error}"))
+}
+
+/// Like [`is_confusable`], but returns an error instead of panicking.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
+pub fn try_is_confusable(a: &str, b: &str) -> Result<bool> {
     let first = ffi::text(a);
     let second = ffi::text(b);
     let mut confusable = false;
@@ -87,6 +103,7 @@ pub fn is_confusable(a: &str, b: &str) -> bool {
             std::ptr::null_mut(),
         )
     };
+    check(status, None)?;
 
-    status == sys::MJB_STATUS_OK && confusable
+    Ok(confusable)
 }

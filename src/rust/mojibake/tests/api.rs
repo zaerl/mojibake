@@ -25,8 +25,27 @@ fn normalization() {
         Cow::Borrowed("hello")
     ));
 
-    assert_eq!(is_normalized("abc", Form::Nfc).unwrap(), QuickCheck::Yes);
-    assert_eq!(is_normalized("\u{e9}", Form::Nfd).unwrap(), QuickCheck::No);
+    assert!(is_normalized("abc", Form::Nfc).unwrap());
+    assert!(!is_normalized("\u{e9}", Form::Nfd).unwrap());
+    assert_eq!(Form::Nfc.quick_check("abc").unwrap(), QuickCheck::Yes);
+    assert_eq!(Form::Nfd.quick_check("\u{e9}").unwrap(), QuickCheck::No);
+
+    // The quick check cannot decide on a combining mark; is_normalized can.
+    assert_eq!(
+        Form::Nfc.quick_check("e\u{301}").unwrap(),
+        QuickCheck::Maybe
+    );
+    assert!(!is_normalized("e\u{301}", Form::Nfc).unwrap());
+    assert_eq!(
+        Form::Nfc.quick_check("a\u{301}\u{1e0}").unwrap(),
+        QuickCheck::Maybe
+    );
+    assert!("\u{e1}\u{1e0}".is_normalized(Form::Nfc).unwrap());
+    assert_eq!(
+        Form::Nfc.quick_check("\u{1e0}\u{301}").unwrap(),
+        QuickCheck::Maybe
+    );
+    assert!(is_normalized("\u{1e0}\u{301}", Form::Nfc).unwrap());
     assert_eq!(nfkc_casefold("ＡＢＣ").unwrap(), "abc");
 }
 
@@ -114,11 +133,14 @@ fn characters() {
     assert_eq!('A'.general_category(), GeneralCategory::UppercaseLetter);
     assert_eq!('€'.general_category().abbreviation(), "Sc");
     assert_eq!('\u{378}'.general_category(), GeneralCategory::Unassigned);
-    assert_eq!('A'.block().as_deref(), Some("Basic Latin"));
-    assert_eq!('A'.script(), Some("Latn"));
-    assert_eq!('Ж'.script(), Some("Cyrl"));
-    assert_eq!('Ⅻ'.numeric_value(), Some(12.0));
-    assert_eq!('½'.numeric_value(), Some(0.5));
+    assert_eq!('A'.block().map(Block::name), Some("Basic Latin"));
+    assert_eq!('A'.script().map(Script::code), Some("Latn"));
+    assert_eq!('Ж'.script().map(Script::code), Some("Cyrl"));
+    assert_eq!(
+        'Ⅻ'.numeric_value().and_then(NumericValue::as_integer),
+        Some(12)
+    );
+    assert_eq!('½'.numeric_value().map(NumericValue::as_f64), Some(0.5));
     assert_eq!('A'.numeric_value(), None);
     assert_eq!('日'.east_asian_width(), Some(EastAsianWidth::Wide));
     assert_eq!('a'.east_asian_width(), Some(EastAsianWidth::Narrow));
@@ -189,7 +211,14 @@ fn character_records() {
     assert_eq!(four.general_category, GeneralCategory::DecimalNumber);
     assert_eq!(four.decimal_value, Some(4));
     assert_eq!(four.digit_value, Some(4));
-    assert_eq!(four.numeric_value, Some(4.0));
+    assert_eq!(
+        four.numeric_value,
+        Some(NumericValue {
+            numeric_type: NumericType::Decimal,
+            numerator: 4,
+            denominator: 1,
+        })
+    );
 
     let two = '²'.info().unwrap();
     assert_eq!(two.decimal_value, None);
@@ -197,7 +226,10 @@ fn character_records() {
 
     let half = '½'.info().unwrap();
     assert_eq!((half.decimal_value, half.digit_value), (None, None));
-    assert_eq!(half.numeric_value, Some(0.5));
+    assert_eq!(
+        half.numeric_value.map(|v| v.to_string()).as_deref(),
+        Some("1/2")
+    );
 
     assert!('\u{378}'.info().is_none());
 }

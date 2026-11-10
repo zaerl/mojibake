@@ -9,8 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `Makefile.nmake` gains the `test-rust`, `vendor-rust`, and `package-rust` targets
+- Rust: `Script` and `Block` types, an exact `NumericValue` with its `NumericType`,
+  `Form::quick_check`, `collate::SortKey`, `Collator::{sort, sort_by_key, try_compare}`,
+  `collate::sort`, `try_caseless_eq`, and `security::try_is_confusable`
+- Rust: `Display` and `FromStr` for `Form`, `Locale`, `GeneralCategory`, and `Script`, plus
+  `GeneralCategory::name`, and an optional `serde` feature that serializes them and
+  `LanguageTag` as strings
+- `mojibake-sys` declares `MJB_SC_COUNT`, `MJB_SC_PROPERTY_COUNT`, `MJB_BLOCK_NUM`, and the
+  `MJB_SC_ZINH`, `MJB_SC_ZYYY`, and `MJB_SC_ZZZZ` scripts
 
 ### Changed
+- Rust (breaking): `is_normalized` and `StrExt::is_normalized` return an exact `bool`; the
+  three-valued quick check moved to `Form::quick_check`
+- Rust (breaking): `CharExt::script` and `script_extensions`, and `security::ScriptSet`, return
+  `Script` instead of `&str`; `CharExt::block` returns a `Block` instead of a `String`;
+  `CharExt::numeric_value` and `CharInfo::numeric_value` return a `NumericValue` instead of an
+  `f64`; `sort_key` returns a `SortKey` instead of a `Vec<u8>`
+- Rust: `caseless_eq`, `security::is_confusable`, and `Collator::compare` panic when the C
+  library fails instead of returning `false` or `Ordering::Equal`. The segment counts and
+  `terminal_width` panic instead of returning a wrong count in release builds
 - The Rust README now introduces the crates for newcomers. Its build, packaging, and release
   notes moved to the "Rust crates" section of `CONTRIBUTING.md`
 

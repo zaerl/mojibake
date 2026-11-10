@@ -10,6 +10,7 @@ use std::ffi::{c_char, CStr};
 use mojibake_sys as sys;
 
 use crate::error::{check, Error, Result};
+use crate::script::Script;
 
 /// View a UTF-8 Rust string as an `mjb_text`. The text borrows `s`.
 pub(crate) fn text(s: &str) -> sys::mjb_text {
@@ -33,16 +34,22 @@ pub(crate) unsafe fn static_str(ptr: *const c_char) -> Option<&'static str> {
     CStr::from_ptr(ptr).to_str().ok()
 }
 
-/// The ISO 15924 code of an `mjb_script`, or `None` for an out-of-range value.
-pub(crate) fn script_code(script: sys::mjb_script) -> Option<&'static str> {
-    // SAFETY: mjb_script_code returns NULL or a static string.
-    unsafe { static_str(sys::mjb_script_code(script)) }.filter(|code| !code.is_empty())
+/// Panic if a call that cannot fail on valid input reported an error.
+///
+/// The library fails on a valid Rust string only when it cannot allocate memory or a size
+/// overflows. Rust treats allocation failure as fatal, so the infallible wrappers panic instead of
+/// returning a wrong answer. The ones that can allocate have a `try_` variant.
+#[track_caller]
+pub(crate) fn expect_ok(status: sys::mjb_status) {
+    if let Err(error) = check(status, None) {
+        panic!("mojibake: {error}");
+    }
 }
 
 /// Run a `(scripts, count)` query twice: once with NULL to size the buffer, then to fill it.
 pub(crate) fn scripts(
     mut call: impl FnMut(*mut sys::mjb_script, &mut usize) -> sys::mjb_status,
-) -> Result<Vec<&'static str>> {
+) -> Result<Vec<Script>> {
     let mut count = 0;
     check(call(std::ptr::null_mut(), &mut count), None)?;
 
@@ -53,7 +60,7 @@ pub(crate) fn scripts(
         raw.truncate(count);
     }
 
-    Ok(raw.into_iter().filter_map(script_code).collect())
+    Ok(raw.into_iter().filter_map(Script::from_raw).collect())
 }
 
 /// Read a NUL-terminated fixed-size C array, stopping at its end if no NUL is present.
@@ -139,6 +146,10 @@ pub(crate) fn transform<'a>(
 }
 
 /// Run a counting function that takes `(text, policy, count, diagnostic)`.
+///
+/// # Panics
+///
+/// See [`expect_ok`].
 pub(crate) fn count(
     input: &str,
     call: unsafe extern "C" fn(
@@ -162,7 +173,7 @@ pub(crate) fn count(
             &mut diagnostic,
         )
     };
-    debug_assert_eq!(status, sys::MJB_STATUS_OK);
+    expect_ok(status);
 
     count
 }
