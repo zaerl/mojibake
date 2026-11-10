@@ -67,6 +67,8 @@ export async function updateVersion() {
   fileContent = readFileSync('../../README.md', 'utf-8');
   fileContent = substituteBlock(fileContent, 'Download it here [', '.zip)',
     `${zip}.zip](https://github.com/zaerl/mojibake/releases/download/v${v.version}/${zip}`);
+  fileContent = substituteBlock(fileContent, '    GIT_TAG v', '\n', v.version);
+  fileContent = substituteBlock(fileContent, 'mojibake-rs = "', '"', v.versionShort);
 
   writeFileSync('../../README.md', fileContent);
 

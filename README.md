@@ -30,6 +30,15 @@ header, with zero dependencies. It is released under the MIT License.
 - **Portable.** Builds as C11 and C++17 on Linux, macOS, Windows, the BSDs, Haiku, Android, and
   WebAssembly.
 
+## Status
+
+Mojibake covers the Unicode algorithms listed below and is close to feature-complete for its
+scope. It is still pre-1.0: the C API is stable in practice, but a minor release may make breaking
+changes, which are always listed in the
+[changelog](https://github.com/zaerl/mojibake/blob/main/CHANGELOG.md). Streaming APIs, configurable
+collators, and the remaining UTS #39 identifier checks are planned; see the
+[roadmap](https://github.com/zaerl/mojibake/blob/main/ROADMAP.md).
+
 ## Quick start
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
@@ -206,7 +215,7 @@ include(FetchContent)
 FetchContent_Declare(
     Mojibake
     GIT_REPOSITORY https://github.com/zaerl/mojibake.git
-    GIT_TAG main
+    GIT_TAG v0.6.0
 )
 FetchContent_MakeAvailable(Mojibake)
 
@@ -241,7 +250,7 @@ crates.io, but its library is still imported as `mojibake`:
 
 ```toml
 [dependencies]
-mojibake-rs = "0.5"
+mojibake-rs = "0.6"
 ```
 
 ```rust
@@ -251,7 +260,7 @@ let nfc = "Cafe\u{301}".normalize(Form::Nfc)?; // "Caf\u{e9}"
 let upper = "istanbul".to_uppercase_in(Locale::parse("tr")?)?; // "İSTANBUL"
 let folded = mojibake::nfkc_casefold("Straße")?; // "strasse"
 let clusters = "👨‍👩‍👧é".graphemes().count(); // 2
-let half = '½'.numeric_value(); // Some(0.5)
+let half = '½'.numeric_value().unwrap().to_string(); // "1/2"
 ```
 
 String transforms return `Cow<str>` and borrow the input when it is already in the requested
