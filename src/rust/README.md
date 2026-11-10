@@ -4,21 +4,50 @@
 [![docs.rs](https://img.shields.io/docsrs/mojibake-rs)](https://docs.rs/mojibake-rs)
 [![Rust](https://img.shields.io/badge/rust-1.77.0%2B-blue.svg?maxAge=3600)](https://github.com/zaerl/mojibake)
 
-Two crates that expose Mojibake to Rust:
+Unicode text processing for Rust: normalization, locale-aware casing, grapheme, word, sentence,
+and line segmentation, bidirectional text, collation, IDNA, confusable detection, and the full
+Unicode Character Database. It passes the official Unicode conformance tests.
 
-- `mojibake-sys` compiles the C library with the [`cc`](https://crates.io/crates/cc) crate and
-  declares the raw FFI. No CMake is needed.
-- `mojibake-rs` is the safe, idiomatic API, built mostly from extension traits on `str` and `char`.
-  It is published as `mojibake-rs` because the `mojibake` name is taken on crates.io, but its
-  library is still named `mojibake`, so code writes `use mojibake::...`:
+It wraps [Mojibake](https://github.com/zaerl/mojibake), a self-contained Unicode library written in
+C11 with no dependencies. The build script compiles the C sources with the
+[`cc`](https://crates.io/crates/cc) crate, so all you need is a C compiler: no CMake, no system
+library, and no data files to ship.
 
-  ```toml
-  [dependencies]
-  mojibake-rs = "0.6"
-  ```
+(Despite the name, it isn't a simple library that repair garbled text. *Mojibake* is the Japanese
+word for the garbage you get when text is decoded with the wrong encoding, which is what correct
+Unicode handling avoids.)
+
+```toml
+[dependencies]
+mojibake-rs = "0.6"
+```
+
+The package is named `mojibake-rs` because `mojibake` is taken on crates.io. The library itself is
+still named `mojibake`, so you write `use mojibake::...`.
+
+```rust
+use mojibake::{CharExt, Form, Locale, StrExt};
+
+assert_eq!("e\u{301}".normalize(Form::Nfc)?, "\u{e9}");
+assert_eq!("istanbul".to_uppercase_in(Locale::parse("tr")?)?, "İSTANBUL");
+assert!("Straße".caseless_eq("STRASSE"));
+assert_eq!("👨‍👩‍👧é".graphemes().count(), 2);
+assert_eq!("日本語".truncate_to_width(5), "日本");
+assert_eq!('½'.numeric_value(), Some(0.5));
+assert_eq!(mojibake::idna::to_ascii("bücher.de")?.unwrap(), "xn--bcher-kva.de");
+
+use mojibake::bidi::{Direction, Paragraph};
+use mojibake::encoding::{decode, Encoding, Malformed};
+
+assert_eq!(decode(b"a\x00\x00\xd8", Encoding::Utf16Le, Malformed::Replace)?, "a\u{fffd}");
+let paragraph = Paragraph::new("abc אבג", Direction::Auto)?;
+assert_eq!(paragraph.visual(0..paragraph.len())?, "abc גבא");
+```
+
+## What it adds to `std`
 
 The Rust standard library has UTF-8 strings, simple character predicates, and full
-upper/lowercase mapping. These crates add what it leaves out:
+upper/lowercase mapping. This crate adds what it leaves out:
 
 | Area | API |
 | --- | --- |
@@ -42,24 +71,12 @@ upper/lowercase mapping. These crates add what it leaves out:
 | Hangul (Unicode 3.12) | `hangul::{compose, decompose, syllable_name, is_syllable, is_jamo, ...}` |
 | Confusables and script sets (UTS #39) | `security::{skeleton, is_confusable, resolved_scripts}` |
 
-```rust
-use mojibake::{CharExt, Form, Locale, StrExt};
+## Crates
 
-assert_eq!("e\u{301}".normalize(Form::Nfc)?, "\u{e9}");
-assert_eq!("istanbul".to_uppercase_in(Locale::parse("tr")?)?, "İSTANBUL");
-assert!("Straße".caseless_eq("STRASSE"));
-assert_eq!("👨‍👩‍👧é".graphemes().count(), 2);
-assert_eq!("日本語".truncate_to_width(5), "日本");
-assert_eq!('½'.numeric_value(), Some(0.5));
-assert_eq!(mojibake::idna::to_ascii("bücher.de")?.unwrap(), "xn--bcher-kva.de");
-
-use mojibake::bidi::{Direction, Paragraph};
-use mojibake::encoding::{decode, Encoding, Malformed};
-
-assert_eq!(decode(b"a\x00\x00\xd8", Encoding::Utf16Le, Malformed::Replace)?, "a\u{fffd}");
-let paragraph = Paragraph::new("abc אבג", Direction::Auto)?;
-assert_eq!(paragraph.visual(0..paragraph.len())?, "abc גבא");
-```
+- `mojibake-rs` is the safe, idiomatic API, built mostly from extension traits on `str` and `char`.
+  This is the one to depend on.
+- `mojibake-sys` compiles the C library and declares the raw FFI. Use it directly only to write
+  your own bindings.
 
 ## Design
 
@@ -88,59 +105,16 @@ assert_eq!(paragraph.visual(0..paragraph.len())?, "abc גבא");
 `MJB_FEATURE_*` options. Turn them off with `default-features = false` to drop the large tables.
 The matching Rust APIs are compiled out.
 
-## Building and testing
+## Not wrapped yet
 
-From the repository root:
+- the `_into` variants and the streaming decoder over `mjb_decode_next`. `String`, `Cow`, and
+  `str` iterators cover the same ground today
+- a custom allocator: the C library uses its default allocator rather than `std::alloc`
 
-```sh
-make test-rust
-```
+`mojibake-sys` declares every public C function except the variadic and `va_list` formatting ones.
 
-This runs rustfmt, clippy, and the tests with all features on and with all features off.
+## Contributing
 
-The `mojibake-sys` build script looks for the C sources in this order:
-
-1. `MOJIBAKE_SRC_DIR`, when it is set
-2. the repository's `src/` directory, when the crate is built inside a Mojibake checkout
-3. `mojibake-sys/csrc/`, the git-ignored copy that `make vendor-rust` makes for packaging
-
-A checkout wins over `csrc/`, so a leftover copy is never compiled in-tree. The source list comes
-from the generated `SOURCES` block of `CMakeLists.txt`.
-
-## Packaging and publishing
-
-`make package-rust` copies `src/*.c`, `src/*.h`, `src/CMakeLists.txt`, and `LICENSE` into
-`mojibake-sys/csrc/`, then runs `cargo package --workspace` and
-`cargo publish --workspace --dry-run`. Both crates are packaged and each is built from its
-`.crate` file, with `mojibake-rs` resolving the unpublished `mojibake-sys` from Cargo's local staging
-registry. CI runs it on every push. It needs Cargo 1.90 or newer for workspace packaging; users of
-the crates still need only Rust 1.77.
-
-Cargo treats the git-ignored `csrc/` as uncommitted, so the target always passes `--allow-dirty`
-and instead refuses to run when `src/` or `LICENSE` has uncommitted or untracked changes. Set
-`ALLOW_DIRTY=1` to package a work in progress. Extra Cargo flags go in `ARGS`.
-
-To release the crates:
-
-1. Set `VERSION` and run `make update-version`. It sets the workspace version in `Cargo.toml`,
-   the `mojibake-sys` dependency of `mojibake-rs`, and both entries in `Cargo.lock`.
-2. Commit the release and check that `make test-rust` and `make package-rust` pass.
-3. Publish from the same clean checkout. Cargo uploads `mojibake-sys` first, then `mojibake-rs`:
-
-   ```sh
-   make vendor-rust
-   (cd src/rust && cargo publish --workspace --locked --allow-dirty)
-   ```
-
-## Status
-
-This is a scaffold. `mojibake-sys` declares every public function except the variadic and
-`va_list` formatting ones. The declarations in `mojibake-sys/src/functions.rs` are generated from
-`utils/generate/functions.ts` by `make generate`; do not edit them. The types, constants, and
-layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
-Not done yet:
-
-- expose the remaining APIs in the safe crate: the `_into` variants and streaming decoders over
-  `mjb_decode_next`, if a use case appears; `String`, `Cow`, and `str` iterators cover them today
-- route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
-  exact block size that `Layout` needs, so owned results could become `String`s without a copy
+The crates live in the [Mojibake repository](https://github.com/zaerl/mojibake). See the
+[Rust section of CONTRIBUTING.md](https://github.com/zaerl/mojibake/blob/main/CONTRIBUTING.md#rust-crates)
+for building, testing, packaging, and releasing them.

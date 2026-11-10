@@ -248,6 +248,66 @@ ATT_ASSERT(count, (size_t)11, "UTF-8 Hello, test");
 
 Then run `make test` and `make test-cpp` to be sure all tests are working.
 
+## Rust crates
+
+The Rust crates live in `src/rust/`; their user-facing documentation is
+[src/rust/README.md](src/rust/README.md).
+
+### Building and testing
+
+From the repository root:
+
+```sh
+make test-rust
+```
+
+This runs rustfmt, clippy, and the tests with all features on and with all features off.
+
+The `mojibake-sys` build script looks for the C sources in this order:
+
+1. `MOJIBAKE_SRC_DIR`, when it is set
+2. the repository's `src/` directory, when the crate is built inside a Mojibake checkout
+3. `mojibake-sys/csrc/`, the git-ignored copy that `make vendor-rust` makes for packaging
+
+A checkout wins over `csrc/`, so a leftover copy is never compiled in-tree. The source list comes
+from the generated `SOURCES` block of `CMakeLists.txt`.
+
+The declarations in `mojibake-sys/src/functions.rs` are generated from
+`utils/generate/functions.ts` by `make generate`; do not edit them. The types, constants, and
+layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
+
+### Packaging and publishing
+
+`make package-rust` copies `src/*.c`, `src/*.h`, `src/CMakeLists.txt`, and `LICENSE` into
+`mojibake-sys/csrc/`, then runs `cargo package --workspace` and
+`cargo publish --workspace --dry-run`. Both crates are packaged and each is built from its
+`.crate` file, with `mojibake-rs` resolving the unpublished `mojibake-sys` from Cargo's local
+staging registry. CI runs it on every push. It needs Cargo 1.90 or newer for workspace packaging;
+users of the crates still need only Rust 1.77.
+
+Cargo treats the git-ignored `csrc/` as uncommitted, so the target always passes `--allow-dirty`
+and instead refuses to run when `src/` or `LICENSE` has uncommitted or untracked changes. Set
+`ALLOW_DIRTY=1` to package a work in progress. Extra Cargo flags go in `ARGS`.
+
+To release the crates:
+
+1. Set `VERSION` and run `make update-version`. It sets the workspace version in `Cargo.toml`,
+   the `mojibake-sys` dependency of `mojibake-rs`, and both entries in `Cargo.lock`.
+2. Commit the release and check that `make test-rust` and `make package-rust` pass.
+3. Publish from the same clean checkout. Cargo uploads `mojibake-sys` first, then `mojibake-rs`:
+
+   ```sh
+   make vendor-rust
+   (cd src/rust && cargo publish --workspace --locked --allow-dirty)
+   ```
+
+### Not done yet
+
+- expose the remaining APIs in the safe crate: the `_into` variants and streaming decoders over
+  `mjb_decode_next`, if a use case appears; `String`, `Cow`, and `str` iterators cover them today
+- route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
+  exact block size that `Layout` needs, so owned results could become `String`s without a copy
+
 ## Reporting Issues
 
 - Use the GitHub issue tracker

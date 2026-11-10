@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Makefile.nmake` gains the `test-rust`, `vendor-rust`, and `package-rust` targets
 
 ### Changed
+- The Rust README now introduces the crates for newcomers. Its build, packaging, and release
+  notes moved to the "Rust crates" section of `CONTRIBUTING.md`
 
 ### Fixed
 
