@@ -39,6 +39,7 @@ impl Plane {
     pub const PUA_B: Self = Self(sys::MJB_PLANE_PUA_B as u8);
 
     /// Plane `number`, or `None` if it is not 0 to 16.
+    #[must_use]
     pub const fn new(number: u8) -> Option<Self> {
         if (number as i32) < sys::MJB_PLANE_NUM {
             Some(Self(number))
@@ -48,17 +49,20 @@ impl Plane {
     }
 
     /// The plane that contains `c`.
+    #[must_use]
     pub const fn of(c: char) -> Self {
         // A char is at most U+10FFFF, so the plane is at most 16.
         Self((c as u32 >> 16) as u8)
     }
 
     /// The plane number, 0 to 16.
+    #[must_use]
     pub const fn number(self) -> u8 {
         self.0
     }
 
     /// The codepoints of the plane, such as `0x10000..=0x1FFFF` for plane 1.
+    #[must_use]
     pub const fn codepoints(self) -> RangeInclusive<u32> {
         let start = self.0 as u32 * sys::MJB_PLANE_SIZE as u32;
 
@@ -67,17 +71,20 @@ impl Plane {
 
     /// The name of the plane, such as `"Basic Multilingual Plane"`, or `None` for the unassigned
     /// planes 4 to 13.
+    #[must_use]
     pub fn name(self) -> Option<&'static str> {
         self.raw_name(false)
     }
 
     /// The abbreviation of the plane, such as `"BMP"` or `"PUA-A"`, or `None` for the unassigned
     /// planes 4 to 13.
+    #[must_use]
     pub fn abbreviation(self) -> Option<&'static str> {
         self.raw_name(true)
     }
 
     /// True for the seven planes with a name. Planes 4 to 13 have none yet.
+    #[must_use]
     pub fn is_assigned(self) -> bool {
         self.name().is_some()
     }

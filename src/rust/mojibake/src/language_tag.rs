@@ -52,6 +52,8 @@ impl LanguageTag {
     /// Parse a well-formed BCP 47 language tag such as `"en-US"`, `"zh-Hant-TW"`,
     /// `"de-CH-1996"`, `"x-private"`, or the grandfathered `"i-klingon"`.
     ///
+    /// # Errors
+    ///
     /// Returns [`Error::InvalidArgument`] for a malformed tag, including a repeated variant or
     /// extension singleton, and for a tag too long for the C library's fixed-size fields (over 31
     /// bytes of variants or 127 bytes of extensions or private use).
@@ -73,6 +75,7 @@ impl LanguageTag {
 
     /// The primary language subtag, such as `"en"`. `None` for a private-use-only or
     /// grandfathered tag.
+    #[must_use]
     pub fn language(&self) -> Option<&str> {
         non_empty(&self.language)
     }
@@ -83,11 +86,13 @@ impl LanguageTag {
     }
 
     /// The ISO 15924 script subtag, such as `"Latn"`.
+    #[must_use]
     pub fn script(&self) -> Option<&str> {
         non_empty(&self.script)
     }
 
     /// The region subtag: an ISO 3166-1 code such as `"US"`, or a UN M.49 code such as `"419"`.
+    #[must_use]
     pub fn region(&self) -> Option<&str> {
         non_empty(&self.region)
     }
@@ -107,6 +112,7 @@ impl LanguageTag {
 
     /// The value of the extension introduced by `singleton`, such as `"ca-gregory"` for `'u'`.
     /// The singleton is matched without regard to ASCII case.
+    #[must_use]
     pub fn extension(&self, singleton: char) -> Option<&str> {
         let singleton = singleton.to_ascii_lowercase();
 
@@ -122,6 +128,7 @@ impl LanguageTag {
 
     /// The whole tag if it is one of the grandfathered tags of RFC 5646, such as `"i-klingon"`,
     /// in lowercase.
+    #[must_use]
     pub fn grandfathered(&self) -> Option<&str> {
         non_empty(&self.grandfathered)
     }
@@ -129,6 +136,7 @@ impl LanguageTag {
     /// The locale that a two-letter language subtag selects, such as `tr` for `"tr-TR"`, or
     /// [`Locale::ROOT`] for a language the library does not list. Pass it to the casing functions;
     /// a listed locale without casing rules, such as `en`, cases like [`Locale::ROOT`].
+    #[must_use]
     pub fn locale(&self) -> Locale {
         self.locale
     }
@@ -174,6 +182,7 @@ impl fmt::Display for LanguageTag {
 
 /// The extensions of a [`LanguageTag`], from [`LanguageTag::extensions`].
 #[derive(Clone, Debug)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct Extensions<'a> {
     rest: &'a str,
 }

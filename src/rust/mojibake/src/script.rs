@@ -50,11 +50,13 @@ impl Script {
 
     /// The script whose ISO 15924 code is `code`, ignoring ASCII case: `"latn"` is
     /// `Script::from_code("Latn")`.
+    #[must_use]
     pub fn from_code(code: &str) -> Option<Self> {
         Self::all().find(|script| script.code().eq_ignore_ascii_case(code))
     }
 
     /// The four-letter ISO 15924 code, such as `"Latn"`.
+    #[must_use]
     pub fn code(self) -> &'static str {
         // SAFETY: mjb_script_code returns NULL or a static string.
         unsafe { ffi::static_str(sys::mjb_script_code(self.0)) }.unwrap_or("")
@@ -62,11 +64,13 @@ impl Script {
 
     /// True for a value of the `Script` property, false for the UTS #39 writing-system values
     /// `Hanb` (Han with Bopomofo), `Jpan` (Japanese), and `Kore` (Korean).
+    #[must_use]
     pub fn is_property_value(self) -> bool {
         self.0 < sys::MJB_SC_PROPERTY_COUNT
     }
 
     /// The raw C `mjb_script` value.
+    #[must_use]
     pub fn as_raw(self) -> i32 {
         self.0
     }
@@ -155,16 +159,19 @@ impl Block {
     }
 
     /// The code points of the block, including unassigned ones.
+    #[must_use]
     pub fn codepoints(self) -> RangeInclusive<u32> {
         self.start..=self.end
     }
 
     /// True if `c` is in the block.
+    #[must_use]
     pub fn contains(self, c: char) -> bool {
         self.codepoints().contains(&u32::from(c))
     }
 
     /// The raw C `mjb_block` value.
+    #[must_use]
     pub fn as_raw(self) -> i32 {
         self.id
     }

@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `LanguageTag` as strings
 - `mojibake-sys` declares `MJB_SC_COUNT`, `MJB_SC_PROPERTY_COUNT`, `MJB_BLOCK_NUM`, and the
   `MJB_SC_ZINH`, `MJB_SC_ZYYY`, and `MJB_SC_ZZZZ` scripts
+- CI tests the Rust crates on Windows with MSVC and with the minimum supported Rust version,
+  1.77, and builds their documentation as docs.rs does
+- Rust: docs.rs documents every feature and marks feature-gated items
 
 ### Changed
 - Rust (breaking): `is_normalized` and `StrExt::is_normalized` return an exact `bool`; the
@@ -28,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rust: `caseless_eq`, `security::is_confusable`, and `Collator::compare` panic when the C
   library fails instead of returning `false` or `Ordering::Equal`. The segment counts and
   `terminal_width` panic instead of returning a wrong count in release builds
+- Rust: every public item is documented, each fallible function has an `# Errors` section, and
+  pure functions, `CharExt` and `StrExt` methods, and the segment iterators are `#[must_use]`.
+  `make test-rust` also fails on rustdoc warnings
 - The Rust README now introduces the crates for newcomers. Its build, packaging, and release
   notes moved to the "Rust crates" section of `CONTRIBUTING.md`
 

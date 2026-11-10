@@ -30,6 +30,7 @@ impl WidthProfile {
 /// # Panics
 ///
 /// If the width overflows `usize`, which a string that fits in memory cannot reach.
+#[must_use]
 pub fn terminal_width(s: &str, profile: WidthProfile) -> usize {
     let text = ffi::text(s);
     let mut width = 0;
@@ -50,6 +51,7 @@ pub fn terminal_width(s: &str, profile: WidthProfile) -> usize {
 }
 
 /// The longest prefix of `s` that fits in `max_columns` cells without splitting a grapheme.
+#[must_use]
 pub fn truncate_to_width(s: &str, profile: WidthProfile, max_columns: usize) -> &str {
     let text = ffi::text(s);
     // SAFETY: `text` borrows `s` for the duration of the call.

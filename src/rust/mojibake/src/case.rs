@@ -25,11 +25,16 @@ impl Locale {
     /// Parse a BCP 47 language tag such as `"tr"` or `"sr-Latn-RS"`.
     ///
     /// Use [`LanguageTag::parse`](crate::LanguageTag::parse) to read the tag's subtags.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidArgument`](crate::Error::InvalidArgument) for a malformed tag.
     pub fn parse(tag: &str) -> Result<Self> {
         parse_tag(tag).map(|id| Self(id.locale))
     }
 
     /// The ISO 639-1 code of the matched locale, or `None` for [`Locale::ROOT`].
+    #[must_use]
     pub fn code(self) -> Option<&'static str> {
         // SAFETY: mjb_locale_code returns NULL or a static string.
         unsafe { ffi::static_str(sys::mjb_locale_code(self.0)) }.filter(|code| !code.is_empty())
@@ -79,26 +84,46 @@ fn map_case(s: &str, kind: sys::mjb_map_case_type, locale: Locale) -> Result<Cow
 }
 
 /// Full uppercase mapping, with locale tailoring.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn to_uppercase(s: &str, locale: Locale) -> Result<Cow<'_, str>> {
     map_case(s, sys::MJB_CASE_UPPER, locale)
 }
 
 /// Full lowercase mapping, with locale tailoring and the Greek final sigma rule.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn to_lowercase(s: &str, locale: Locale) -> Result<Cow<'_, str>> {
     map_case(s, sys::MJB_CASE_LOWER, locale)
 }
 
 /// Titlecase each word (UAX #29 word boundaries), with locale tailoring.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn to_titlecase(s: &str, locale: Locale) -> Result<Cow<'_, str>> {
     map_case(s, sys::MJB_CASE_TITLE, locale)
 }
 
 /// Full case folding (`CaseFolding.txt` statuses C and F). The result may be longer.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn casefold(s: &str) -> Result<Cow<'_, str>> {
     map_case(s, sys::MJB_CASE_CASEFOLD, Locale::ROOT)
 }
 
 /// Simple case folding (statuses C and S). Each character folds to one character.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn casefold_simple(s: &str) -> Result<Cow<'_, str>> {
     map_case(s, sys::MJB_CASE_CASEFOLD_SIMPLE, Locale::ROOT)
 }
@@ -133,6 +158,7 @@ impl CaselessMode {
 /// # Panics
 ///
 /// If the library cannot allocate memory. [`try_caseless_eq`] returns the error instead.
+#[must_use]
 pub fn caseless_eq(a: &str, b: &str, mode: CaselessMode) -> bool {
     try_caseless_eq(a, b, mode).unwrap_or_else(|error| panic!("mojibake: {error}"))
 }

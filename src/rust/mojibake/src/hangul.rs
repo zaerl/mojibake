@@ -42,6 +42,7 @@ pub fn compose(leading: char, vowel: char, trailing: Option<char>) -> Option<cha
 
 /// Split a precomposed syllable into its leading consonant, vowel, and trailing consonant.
 /// `None` if `syllable` is not one of the 11,172 precomposed syllables.
+#[must_use]
 pub fn decompose(syllable: char) -> Option<(char, char, Option<char>)> {
     let mut jamo = [0; 3];
 
@@ -63,6 +64,7 @@ pub fn decompose(syllable: char) -> Option<(char, char, Option<char>)> {
 
 /// The name of a precomposed syllable, such as `"HANGUL SYLLABLE GA"`. It is derived
 /// arithmetically, so it is available without the `names` feature.
+#[must_use]
 pub fn syllable_name(syllable: char) -> Option<String> {
     // "HANGUL SYLLABLE " and at most 2 + 3 + 2 letters of jamo short names.
     let mut buffer = [0 as c_char; 32];
@@ -76,30 +78,35 @@ pub fn syllable_name(syllable: char) -> Option<String> {
 }
 
 /// True for one of the 11,172 precomposed syllables, U+AC00 to U+D7A3.
+#[must_use]
 pub fn is_syllable(c: char) -> bool {
     // SAFETY: a pure function of its argument.
     unsafe { sys::mjb_codepoint_is_hangul_syllable(c as u32) }
 }
 
 /// True for a leading, vowel, or trailing conjoining jamo.
+#[must_use]
 pub fn is_jamo(c: char) -> bool {
     // SAFETY: a pure function of its argument.
     unsafe { sys::mjb_codepoint_is_hangul_jamo(c as u32) }
 }
 
 /// True for a leading consonant jamo (L), U+1100 to U+1112.
+#[must_use]
 pub fn is_leading_jamo(c: char) -> bool {
     // SAFETY: a pure function of its argument.
     unsafe { sys::mjb_codepoint_is_hangul_leading_jamo(c as u32) }
 }
 
 /// True for a vowel jamo (V), U+1161 to U+1175.
+#[must_use]
 pub fn is_vowel_jamo(c: char) -> bool {
     // SAFETY: a pure function of its argument.
     unsafe { sys::mjb_codepoint_is_hangul_vowel_jamo(c as u32) }
 }
 
 /// True for a trailing consonant jamo (T), U+11A8 to U+11C2.
+#[must_use]
 pub fn is_trailing_jamo(c: char) -> bool {
     // SAFETY: a pure function of its argument.
     unsafe { sys::mjb_codepoint_is_hangul_trailing_jamo(c as u32) }

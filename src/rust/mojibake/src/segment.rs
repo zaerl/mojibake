@@ -16,6 +16,7 @@ type BreakNext =
 /// Created by [`graphemes`], [`words`], and [`sentences`]. Word segmentation also yields the
 /// spaces and punctuation between words, as UAX #29 does.
 #[derive(Clone)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct Segments<'a> {
     input: &'a str,
     text: sys::mjb_text,
@@ -154,6 +155,7 @@ pub enum LineBreak {
 
 impl LineBreak {
     /// The byte offset of the opportunity.
+    #[must_use]
     pub fn offset(self) -> usize {
         match self {
             Self::Mandatory(offset) | Self::Allowed(offset) => offset,
@@ -163,6 +165,7 @@ impl LineBreak {
 
 /// An iterator over the line-break opportunities of a string. Created by [`line_breaks`].
 #[derive(Clone)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct LineBreaks<'a> {
     input: &'a str,
     text: sys::mjb_text,

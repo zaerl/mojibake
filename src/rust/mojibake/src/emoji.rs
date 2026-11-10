@@ -101,6 +101,7 @@ pub struct Sequence {
 /// assert_eq!(flag.qualification, Qualification::FullyQualified);
 /// assert!(emoji::sequence("ab").is_none());
 /// ```
+#[must_use]
 pub fn sequence(s: &str) -> Option<Sequence> {
     let text = ffi::text(s);
     let mut emoji = sys::mjb_emoji_sequence::default();
@@ -121,6 +122,7 @@ pub fn sequence(s: &str) -> Option<Sequence> {
 
 /// True if the complete string is one emoji sequence listed by Unicode, including standardized
 /// emoji variation sequences.
+#[must_use]
 pub fn is_sequence(s: &str) -> bool {
     let text = ffi::text(s);
 
@@ -130,6 +132,7 @@ pub fn is_sequence(s: &str) -> bool {
 
 /// True if the complete string is a recommended-for-general-interchange (RGI) emoji, such as
 /// `"🇮🇹"` or `"👨‍👩‍👧"`. Plain standardized variation sequences are not RGI.
+#[must_use]
 pub fn is_rgi(s: &str) -> bool {
     let text = ffi::text(s);
 

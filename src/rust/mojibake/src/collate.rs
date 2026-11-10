@@ -53,11 +53,13 @@ pub struct SortKey(Vec<u8>);
 
 impl SortKey {
     /// The key bytes.
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
     /// The key bytes, for storage in a database index or a file.
+    #[must_use]
     pub fn into_bytes(self) -> Vec<u8> {
         self.0
     }
@@ -112,6 +114,7 @@ impl Collator {
     /// If the library cannot allocate memory. [`Collator::try_compare`] returns the error
     /// instead. A failed comparison is never reported as [`Ordering::Equal`], which would
     /// silently break a sort.
+    #[must_use]
     pub fn compare(self, a: &str, b: &str) -> Ordering {
         self.try_compare(a, b)
             .unwrap_or_else(|error| panic!("mojibake: {error}"))
@@ -223,6 +226,7 @@ impl Collator {
 /// # Panics
 ///
 /// If the library cannot allocate memory. See [`Collator::try_compare`].
+#[must_use]
 pub fn compare(a: &str, b: &str) -> Ordering {
     Collator::default().compare(a, b)
 }

@@ -57,16 +57,19 @@ impl IdnaErrors {
     pub const DOMAIN_LENGTH: Self = Self(sys::MJB_IDNA_ERROR_DOMAIN_LENGTH);
 
     /// True if every check in `other` failed.
+    #[must_use]
     pub const fn contains(self, other: Self) -> bool {
         self.0 & other.0 == other.0
     }
 
     /// True if no check failed.
+    #[must_use]
     pub const fn is_empty(self) -> bool {
         self.0 == 0
     }
 
     /// The raw `mjb_idna_error` bits.
+    #[must_use]
     pub const fn bits(self) -> u32 {
         self.0
     }
@@ -181,11 +184,21 @@ fn convert(domain: &str, call: Convert) -> Result<IdnaResult> {
 /// Convert a domain name to its ASCII form: `"bücher.de"` becomes `"xn--bcher-kva.de"`.
 ///
 /// The outer `Result` reports library errors; the inner one reports UTS #46 processing errors.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory. UTS #46
+/// processing errors are reported by the inner [`IdnaResult`] instead.
 pub fn to_ascii(domain: &str) -> Result<IdnaResult> {
     convert(domain, sys::mjb_idna_to_ascii)
 }
 
 /// Convert a domain name to its Unicode form: `"xn--bcher-kva.de"` becomes `"bücher.de"`.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory. UTS #46
+/// processing errors are reported by the inner [`IdnaResult`] instead.
 pub fn to_unicode(domain: &str) -> Result<IdnaResult> {
     convert(domain, sys::mjb_idna_to_unicode)
 }

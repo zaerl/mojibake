@@ -12,6 +12,10 @@ use crate::script::Script;
 
 /// The confusable skeleton of `s` (UTS #39 section 4). Two strings whose skeletons are equal are
 /// visually confusable.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn skeleton(s: &str) -> Result<String> {
     let text = ffi::text(s);
     let mut output = Output::new();
@@ -40,6 +44,7 @@ pub enum ScriptSet {
 
 impl ScriptSet {
     /// True if no script resolves the string (UTS #39 section 5.1).
+    #[must_use]
     pub fn is_mixed_script(&self) -> bool {
         matches!(self, Self::Empty)
     }
@@ -56,6 +61,10 @@ impl ScriptSet {
 /// assert!(resolved_scripts("Сirclе").unwrap().is_mixed_script()); // Cyrillic С and е
 /// assert_eq!(resolved_scripts("123").unwrap(), ScriptSet::All);
 /// ```
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn resolved_scripts(s: &str) -> Result<ScriptSet> {
     let text = ffi::text(s);
     let mut kind = sys::MJB_SCRIPT_SET_EMPTY;
@@ -78,6 +87,7 @@ pub fn resolved_scripts(s: &str) -> Result<ScriptSet> {
 /// # Panics
 ///
 /// If the library cannot allocate memory. [`try_is_confusable`] returns the error instead.
+#[must_use]
 pub fn is_confusable(a: &str, b: &str) -> bool {
     try_is_confusable(a, b).unwrap_or_else(|error| panic!("mojibake: {error}"))
 }

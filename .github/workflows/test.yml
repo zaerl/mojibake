@@ -105,6 +105,56 @@ jobs:
       - name: Package Rust crates
         run: make package-rust
 
+  rust-windows:
+    name: Test (Rust / Windows / MSVC)
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # The cc crate finds MSVC itself, so no developer prompt is needed. fmt, clippy, and
+      # packaging are platform-independent and run in the rust job.
+      - name: Test Rust crates
+        shell: bash
+        working-directory: src/rust
+        run: |
+          cargo test --all-features
+          cargo test -p mojibake-rs --no-default-features
+
+  rust-msrv:
+    name: Test (Rust / MSRV)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # Keep in sync with rust-version in src/rust/Cargo.toml.
+      - name: Install Rust 1.77
+        run: rustup toolchain install 1.77 --profile minimal
+
+      - name: Test Rust crates
+        working-directory: src/rust
+        run: |
+          cargo +1.77 test --locked --all-features
+          cargo +1.77 test --locked -p mojibake-rs --no-default-features
+
+  rust-docs:
+    name: Rust docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # docs.rs builds with nightly and --cfg docsrs, which turns on the feature badges.
+      - name: Install nightly Rust
+        run: rustup toolchain install nightly --profile minimal
+
+      - name: Build docs as docs.rs does
+        working-directory: src/rust
+        env:
+          RUSTDOCFLAGS: --cfg docsrs -D warnings
+        run: cargo +nightly doc --no-deps --all-features --locked
+
   test-windows:
     name: Test (Windows / MSVC)
     runs-on: windows-latest

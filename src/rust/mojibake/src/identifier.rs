@@ -25,6 +25,7 @@ pub enum IdentifierProfile {
 /// assert!(is_identifier("größe_1", IdentifierProfile::Nfkc));
 /// assert!(!is_identifier("1st", IdentifierProfile::Nfkc));
 /// ```
+#[must_use]
 pub fn is_identifier(s: &str, profile: IdentifierProfile) -> bool {
     let text = ffi::text(s);
     let profile = match profile {

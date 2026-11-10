@@ -184,6 +184,7 @@ pub fn codepoint_count(bytes: &[u8], encoding: Encoding, malformed: Malformed) -
 /// [`Encoding::Utf32`], so that decoding with the answer consumes the BOM. Note that a UTF-32LE
 /// BOM is also a UTF-16LE BOM followed by U+0000; this reports UTF-32. Without a BOM, well-formed
 /// UTF-8 gives [`Encoding::Utf8`]. Anything else, and empty input, gives `None`.
+#[must_use]
 pub fn detect(bytes: &[u8]) -> Option<Encoding> {
     if bytes.is_empty() {
         return None;
