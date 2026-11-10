@@ -5,8 +5,8 @@
 use std::borrow::Cow;
 
 use crate::{
-    case, normalize, segment, width, CaselessMode, Form, LineBreaks, Locale, QuickCheck, Result,
-    Segments, WidthProfile,
+    case, normalize, segment, width, CaselessMode, Form, LineBreaks, Locale, Result, Segments,
+    WidthProfile,
 };
 
 /// Unicode string algorithms that `str` does not provide.
@@ -15,8 +15,9 @@ use crate::{
 pub trait StrExt {
     /// See [`normalize()`](crate::normalize()).
     fn normalize(&self, form: Form) -> Result<Cow<'_, str>>;
-    /// See [`is_normalized`](crate::is_normalized).
-    fn is_normalized(&self, form: Form) -> Result<QuickCheck>;
+    /// See [`is_normalized`](crate::is_normalized). [`Form::quick_check`] is the faster,
+    /// three-valued check.
+    fn is_normalized(&self, form: Form) -> Result<bool>;
     /// See [`to_uppercase`](crate::to_uppercase).
     fn to_uppercase_in(&self, locale: Locale) -> Result<Cow<'_, str>>;
     /// See [`to_lowercase`](crate::to_lowercase).
@@ -46,7 +47,7 @@ impl StrExt for str {
         normalize::normalize(self, form)
     }
 
-    fn is_normalized(&self, form: Form) -> Result<QuickCheck> {
+    fn is_normalized(&self, form: Form) -> Result<bool> {
         normalize::is_normalized(self, form)
     }
 

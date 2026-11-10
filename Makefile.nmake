@@ -370,9 +370,9 @@ ctest-cpp: $(UNICODE_DATA)
 # Run the Rust crates' tests, with every optional feature on and then off, plus clippy and rustfmt
 test-rust:
 	cd src\rust && cargo fmt --check
-	cd src\rust && cargo clippy --all-targets -- -D warnings
+	cd src\rust && cargo clippy --all-targets --all-features -- -D warnings
 	cd src\rust && cargo clippy --all-targets -p mojibake-rs --no-default-features -- -D warnings
-	cd src\rust && cargo test
+	cd src\rust && cargo test --all-features
 	cd src\rust && cargo test -p mojibake-rs --no-default-features
 
 # Copy the C sources into src\rust\mojibake-sys\csrc (git-ignored) so the crate is self-contained

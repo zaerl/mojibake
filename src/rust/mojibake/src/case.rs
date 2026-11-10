@@ -3,10 +3,12 @@
 // This file is distributed under the MIT License. See LICENSE for details.
 
 use std::borrow::Cow;
+use std::fmt;
+use std::str::FromStr;
 
 use mojibake_sys as sys;
 
-use crate::error::{check, Result};
+use crate::error::{check, Error, Result};
 use crate::ffi;
 
 /// A casing locale, parsed from a BCP 47 language tag.
@@ -31,6 +33,23 @@ impl Locale {
     pub fn code(self) -> Option<&'static str> {
         // SAFETY: mjb_locale_code returns NULL or a static string.
         unsafe { ffi::static_str(sys::mjb_locale_code(self.0)) }.filter(|code| !code.is_empty())
+    }
+}
+
+impl fmt::Display for Locale {
+    /// Writes the ISO 639-1 code of the locale, such as `tr`, or `und` (undetermined) for
+    /// [`Locale::ROOT`].
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.code().unwrap_or("und"))
+    }
+}
+
+impl FromStr for Locale {
+    type Err = Error;
+
+    /// See [`Locale::parse`].
+    fn from_str(s: &str) -> Result<Self> {
+        Self::parse(s)
     }
 }
 
@@ -110,7 +129,20 @@ impl CaselessMode {
 }
 
 /// Return true if `a` and `b` match under the caseless relation `mode`.
+///
+/// # Panics
+///
+/// If the library cannot allocate memory. [`try_caseless_eq`] returns the error instead.
 pub fn caseless_eq(a: &str, b: &str, mode: CaselessMode) -> bool {
+    try_caseless_eq(a, b, mode).unwrap_or_else(|error| panic!("mojibake: {error}"))
+}
+
+/// Like [`caseless_eq`], but returns an error instead of panicking.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
+pub fn try_caseless_eq(a: &str, b: &str, mode: CaselessMode) -> Result<bool> {
     let first = ffi::text(a);
     let second = ffi::text(b);
     let mut matches = false;
@@ -127,6 +159,7 @@ pub fn caseless_eq(a: &str, b: &str, mode: CaselessMode) -> bool {
             std::ptr::null_mut(),
         )
     };
+    check(status, None)?;
 
-    status == sys::MJB_STATUS_OK && matches
+    Ok(matches)
 }

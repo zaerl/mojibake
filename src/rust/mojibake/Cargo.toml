@@ -25,6 +25,10 @@ collation = ["mojibake-sys/collation"]
 idna = ["mojibake-sys/idna"]
 # UTS #39 confusables (`security`).
 security = ["mojibake-sys/security"]
+# `Serialize` and `Deserialize` for `Form`, `Locale`, `LanguageTag`, `GeneralCategory`, and
+# `Script`, as strings.
+serde = ["dep:serde"]
 
 [dependencies]
 mojibake-sys = { path = "../mojibake-sys", version = "0.6.0", default-features = false }
+serde = { version = "1", default-features = false, features = ["std"], optional = true }

@@ -33,7 +33,7 @@ assert_eq!("istanbul".to_uppercase_in(Locale::parse("tr")?)?, "İSTANBUL");
 assert!("Straße".caseless_eq("STRASSE"));
 assert_eq!("👨‍👩‍👧é".graphemes().count(), 2);
 assert_eq!("日本語".truncate_to_width(5), "日本");
-assert_eq!('½'.numeric_value(), Some(0.5));
+assert_eq!('½'.numeric_value().unwrap().to_string(), "1/2");
 assert_eq!(mojibake::idna::to_ascii("bücher.de")?.unwrap(), "xn--bcher-kva.de");
 
 use mojibake::bidi::{Direction, Paragraph};
@@ -53,23 +53,25 @@ upper/lowercase mapping. This crate adds what it leaves out:
 | --- | --- |
 | Encodings and malformed input | `encoding::{decode, encode, convert, validate, codepoint_count, detect}` |
 | Bidirectional text (UAX #9) | `bidi::Paragraph::{levels, reorder_line, runs, visual}`, resolved `BidiClass` per character |
-| Normalization (UAX #15) | `normalize`, `is_normalized`, `nfkc_casefold` |
+| Normalization (UAX #15) | `normalize`, `is_normalized`, `Form::quick_check`, `nfkc_casefold` |
 | Locale casing, titlecase, folding | `to_uppercase(s, Locale::parse("tr")?)`, `to_titlecase`, `casefold` |
 | BCP 47 language tags (RFC 5646) | `LanguageTag::{parse, language, script, region, variants, extensions, private_use, locale}` |
-| Caseless matching (D144-D147) | `caseless_eq`, `StrExt::caseless_eq` |
+| Caseless matching (D144-D147) | `caseless_eq`, `try_caseless_eq`, `StrExt::caseless_eq` |
 | Segmentation (UAX #29, UAX #14) | `graphemes`, `words`, `sentences`, `line_breaks`, counts, `grapheme_prefix`, `word_prefix` |
 | Terminal width (UAX #11) | `terminal_width`, `truncate_to_width` |
 | Character properties | `CharExt::{general_category, name, block, plane, script, script_extensions, numeric_value, east_asian_width, emoji_properties}` |
+| Scripts and blocks | `Script::{from_code, code, all}`, `Block::{of, name, codepoints}` |
+| Exact numeric values | `NumericValue::{numerator, denominator, numeric_type, as_integer, as_f64}` |
 | Unicode planes | `Plane::{new, of, number, name, abbreviation, codepoints}` |
 | `UnicodeData.txt` record | `CharExt::info` → `CharInfo`, `CharExt::{canonical_combining_class, bidi_class, decomposition_type, simple_uppercase, ...}` |
 | Any binary or enumerated property | `Property::{from_name, all}`, `CharExt::{has_property, property_value}` |
 | Text filters | `filter(s, Filter::NORMALIZE \| Filter::COLLAPSE_SPACES)` |
 | Identifiers (UAX #31) | `is_identifier`, `CharExt::{is_id_start, is_xid_start, is_pattern_syntax, ...}` |
 | Emoji sequences (UTS #51) | `emoji::{sequence, is_sequence, is_rgi}` |
-| Collation (UTS #10) | `collate::{compare, sort_key, Collator}` |
+| Collation (UTS #10) | `collate::{compare, sort, sort_key, Collator}`, `SortKey` |
 | IDNA (UTS #46) | `idna::{to_ascii, to_unicode}`, typed `idna::IdnaErrors` flags |
 | Hangul (Unicode 3.12) | `hangul::{compose, decompose, syllable_name, is_syllable, is_jamo, ...}` |
-| Confusables and script sets (UTS #39) | `security::{skeleton, is_confusable, resolved_scripts}` |
+| Confusables and script sets (UTS #39) | `security::{skeleton, is_confusable, try_is_confusable, resolved_scripts}` |
 
 ## Crates
 
@@ -93,6 +95,12 @@ upper/lowercase mapping. This crate adds what it leaves out:
 - `bidi::Paragraph` owns the C `mjb_bidi_paragraph` and frees it on drop. Its positions index the
   characters left after rule X9 removes embedding controls; `BidiChar::byte_offset` and
   `Paragraph::byte_range` map them back to the text.
+- Functions that return a `bool` or an `Ordering`, such as `caseless_eq` and `collate::compare`,
+  panic if the C library cannot allocate memory, as `std` does, rather than return a wrong
+  answer. Their `try_` variants, such as `try_caseless_eq` and `Collator::try_compare`, return
+  the error instead.
+- Typed values (`Form`, `Locale`, `LanguageTag`, `GeneralCategory`, `Script`) implement
+  `Display` and `FromStr`, and serialize as those strings with the `serde` feature.
 - C enums are `c_int` constants in `mojibake-sys`, never Rust enums, so an unexpected value from C
   cannot cause undefined behavior.
 - `mojibake-sys/shim/layout.c` statically asserts that the opaque Rust break-state storage fits
@@ -104,6 +112,8 @@ upper/lowercase mapping. This crate adds what it leaves out:
 `names`, `collation`, `idna`, and `security` are on by default and map to the C library's
 `MJB_FEATURE_*` options. Turn them off with `default-features = false` to drop the large tables.
 The matching Rust APIs are compiled out.
+
+`serde`, off by default, adds `Serialize` and `Deserialize` implementations.
 
 ## Not wrapped yet
 

@@ -160,6 +160,17 @@ pub const MJB_PLANE_PUA_B: mjb_plane = 16;
 pub const MJB_PLANE_NUM: c_int = 17;
 pub const MJB_PLANE_SIZE: c_int = 65536;
 
+pub const MJB_SC_NOT_SET: mjb_script = 0;
+pub const MJB_SC_ZINH: mjb_script = 177;
+pub const MJB_SC_ZYYY: mjb_script = 178;
+pub const MJB_SC_ZZZZ: mjb_script = 179;
+/// The number of `Script` property values, plus one for `MJB_SC_NOT_SET`.
+pub const MJB_SC_PROPERTY_COUNT: c_int = 180;
+/// [`MJB_SC_PROPERTY_COUNT`] plus the UTS #39 writing-system values `Hanb`, `Jpan`, and `Kore`.
+pub const MJB_SC_COUNT: c_int = 183;
+/// The number of `mjb_block` values. Blocks are numbered from 0.
+pub const MJB_BLOCK_NUM: c_int = 353;
+
 pub type mjb_idna_error = u32;
 
 pub const MJB_IDNA_ERROR_NONE: mjb_idna_error = 0x0;
@@ -677,6 +688,13 @@ mod layout {
             MJB_PLANE_PUA_B => mjb_rs_value_MJB_PLANE_PUA_B,
             MJB_PLANE_NUM => mjb_rs_value_MJB_PLANE_NUM,
             MJB_PLANE_SIZE => mjb_rs_value_MJB_PLANE_SIZE,
+            MJB_SC_NOT_SET => mjb_rs_value_MJB_SC_NOT_SET,
+            MJB_SC_ZINH => mjb_rs_value_MJB_SC_ZINH,
+            MJB_SC_ZYYY => mjb_rs_value_MJB_SC_ZYYY,
+            MJB_SC_ZZZZ => mjb_rs_value_MJB_SC_ZZZZ,
+            MJB_SC_PROPERTY_COUNT => mjb_rs_value_MJB_SC_PROPERTY_COUNT,
+            MJB_SC_COUNT => mjb_rs_value_MJB_SC_COUNT,
+            MJB_BLOCK_NUM => mjb_rs_value_MJB_BLOCK_NUM,
             MJB_IDNA_ERROR_PUNYCODE as c_int => mjb_rs_value_MJB_IDNA_ERROR_PUNYCODE,
             MJB_IDNA_ERROR_EMPTY_LABEL as c_int => mjb_rs_value_MJB_IDNA_ERROR_EMPTY_LABEL,
             MJB_IDNA_ERROR_HYPHEN as c_int => mjb_rs_value_MJB_IDNA_ERROR_HYPHEN,

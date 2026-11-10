@@ -119,9 +119,16 @@ fn emoji_sequences() {
 
 #[test]
 fn script_extensions() {
-    assert_eq!('a'.script_extensions(), ["Latn"]);
-    assert_eq!('ー'.script_extensions(), ["Hira", "Kana"]);
-    assert_eq!('1'.script_extensions(), ["Zyyy"]);
+    let codes = |c: char| -> Vec<&str> {
+        c.script_extensions()
+            .into_iter()
+            .map(Script::code)
+            .collect()
+    };
+
+    assert_eq!(codes('a'), ["Latn"]);
+    assert_eq!(codes('ー'), ["Hira", "Kana"]);
+    assert_eq!(codes('1'), ["Zyyy"]);
 }
 
 #[test]
@@ -176,7 +183,7 @@ fn resolved_scripts() {
 
     assert_eq!(
         resolved_scripts("Circle").unwrap(),
-        ScriptSet::Resolved(vec!["Latn"])
+        ScriptSet::Resolved(vec![Script::from_code("Latn").unwrap()])
     );
     assert!(resolved_scripts("C\u{0456}rcle").unwrap().is_mixed_script());
     assert_eq!(resolved_scripts("").unwrap(), ScriptSet::All);
@@ -185,7 +192,7 @@ fn resolved_scripts() {
     // Han and Hiragana resolve to the Japanese writing system.
     assert_eq!(
         resolved_scripts("漢字かな").unwrap(),
-        ScriptSet::Resolved(vec!["Jpan"])
+        ScriptSet::Resolved(vec![Script::from_code("jpan").unwrap()])
     );
 }
 

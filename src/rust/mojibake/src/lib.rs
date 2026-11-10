@@ -31,7 +31,10 @@ mod language_tag;
 mod normalize;
 mod plane;
 mod property;
+mod script;
 mod segment;
+#[cfg(feature = "serde")]
+mod serde_impls;
 mod str_ext;
 mod width;
 
@@ -48,10 +51,14 @@ pub mod idna;
 pub mod security;
 
 pub use bidi::BidiClass;
-pub use case::{casefold, casefold_simple, caseless_eq, to_lowercase, to_titlecase, to_uppercase};
+pub use case::{
+    casefold, casefold_simple, caseless_eq, to_lowercase, to_titlecase, to_uppercase,
+    try_caseless_eq,
+};
 pub use case::{CaselessMode, Locale};
 pub use character::{
     CharExt, CharInfo, DecompositionType, EastAsianWidth, EmojiProperties, GeneralCategory,
+    NumericType, NumericValue,
 };
 pub use error::{Diagnostic, Error, Result};
 pub use filter::{filter, Filter};
@@ -60,6 +67,7 @@ pub use language_tag::{Extensions, LanguageTag};
 pub use normalize::{is_normalized, nfkc_casefold, normalize, Form, QuickCheck};
 pub use plane::Plane;
 pub use property::Property;
+pub use script::{Block, Script};
 pub use segment::{
     grapheme_count, grapheme_prefix, graphemes, line_breaks, sentence_count, sentences, word_count,
     word_prefix, words, LineBreak, LineBreaks, Segments,
