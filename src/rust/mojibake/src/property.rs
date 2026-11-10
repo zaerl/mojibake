@@ -40,6 +40,7 @@ impl Property {
     /// Matching ignores ASCII case, spaces, hyphens, and underscores (UAX #44 LM3), so
     /// `"white space"` and `"WhiteSpace"` also find `White_Space`. Short aliases such as `"WSpace"`
     /// are not recognized.
+    #[must_use]
     pub fn from_name(name: &str) -> Option<Self> {
         let wanted = loose(name);
 
@@ -51,6 +52,7 @@ impl Property {
     }
 
     /// The long name of the property, such as `"Alphabetic"`.
+    #[must_use]
     pub fn name(self) -> &'static str {
         self.raw_name().unwrap_or(UNKNOWN)
     }
@@ -58,6 +60,7 @@ impl Property {
     /// True for a binary property, which [`CharExt::has_property`](crate::CharExt::has_property)
     /// reads. Other properties are read with
     /// [`CharExt::property_value`](crate::CharExt::property_value).
+    #[must_use]
     pub fn is_binary(self) -> bool {
         let mut value = false;
 

@@ -32,3 +32,9 @@ serde = ["dep:serde"]
 [dependencies]
 mojibake-sys = { path = "../mojibake-sys", version = "0.6.0", default-features = false }
 serde = { version = "1", default-features = false, features = ["std"], optional = true }
+
+# Document every feature on docs.rs. Its nightly build sets `--cfg docsrs`, which turns on the
+# `doc_cfg` badges that mark feature-gated items.
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -17,35 +17,65 @@ use crate::script::{Block, Script};
 /// The `General_Category` property of a character.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum GeneralCategory {
+    /// `Cn`: an unassigned code point or a noncharacter, such as U+0378.
     Unassigned,
+    /// `Lu`: an uppercase letter, such as `'A'`.
     UppercaseLetter,
+    /// `Ll`: a lowercase letter, such as `'a'`.
     LowercaseLetter,
+    /// `Lt`: a digraph whose first part is uppercase, such as `'ǅ'`.
     TitlecaseLetter,
+    /// `Lm`: a modifier letter, such as `'ʰ'`.
     ModifierLetter,
+    /// `Lo`: a letter without case, such as `'א'` or `'中'`.
     OtherLetter,
+    /// `Mn`: a nonspacing combining mark, such as U+0301 COMBINING ACUTE ACCENT.
     NonspacingMark,
+    /// `Mc`: a spacing combining mark, such as U+0903 DEVANAGARI SIGN VISARGA.
     SpacingMark,
+    /// `Me`: an enclosing combining mark, such as U+20DD COMBINING ENCLOSING CIRCLE.
     EnclosingMark,
+    /// `Nd`: a decimal digit, such as `'7'` or `'٤'`.
     DecimalNumber,
+    /// `Nl`: a letterlike number, such as `'Ⅻ'`.
     LetterNumber,
+    /// `No`: another number, such as `'½'` or `'²'`.
     OtherNumber,
+    /// `Pc`: a connecting punctuation mark, such as `'_'`.
     ConnectorPunctuation,
+    /// `Pd`: a dash or hyphen, such as `'-'`.
     DashPunctuation,
+    /// `Ps`: an opening punctuation mark of a pair, such as `'('`.
     OpenPunctuation,
+    /// `Pe`: a closing punctuation mark of a pair, such as `')'`.
     ClosePunctuation,
+    /// `Pi`: an initial quotation mark, such as `'«'`.
     InitialPunctuation,
+    /// `Pf`: a final quotation mark, such as `'»'`.
     FinalPunctuation,
+    /// `Po`: another punctuation mark, such as `'!'`.
     OtherPunctuation,
+    /// `Sm`: a mathematical symbol, such as `'+'`.
     MathSymbol,
+    /// `Sc`: a currency sign, such as `'€'`.
     CurrencySymbol,
+    /// `Sk`: a non-letterlike modifier symbol, such as `'^'`.
     ModifierSymbol,
+    /// `So`: another symbol, such as `'©'`.
     OtherSymbol,
+    /// `Zs`: a space character of nonzero width, such as `' '`.
     SpaceSeparator,
+    /// `Zl`: U+2028 LINE SEPARATOR.
     LineSeparator,
+    /// `Zp`: U+2029 PARAGRAPH SEPARATOR.
     ParagraphSeparator,
+    /// `Cc`: a C0 or C1 control code, such as `'\n'`.
     Control,
+    /// `Cf`: a format control character, such as U+200D ZERO WIDTH JOINER.
     Format,
+    /// `Cs`: a surrogate code point. A Rust `char` is never one.
     Surrogate,
+    /// `Co`: a private-use character, such as U+E000.
     PrivateUse,
 }
 
@@ -130,11 +160,13 @@ impl GeneralCategory {
     ];
 
     /// The two-letter property value alias, such as `"Lu"`.
+    #[must_use]
     pub fn abbreviation(self) -> &'static str {
         Self::ABBREVIATIONS[self as usize]
     }
 
     /// The long property value alias, such as `"Uppercase_Letter"`.
+    #[must_use]
     pub fn name(self) -> &'static str {
         Self::NAMES[self as usize]
     }
@@ -173,22 +205,35 @@ impl FromStr for GeneralCategory {
 /// The `East_Asian_Width` property of a character (UAX #11).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum EastAsianWidth {
+    /// `A`: narrow in most text, wide in East Asian text, such as `'±'`.
     Ambiguous,
+    /// `F`: a fullwidth form of a narrow character, such as `'Ａ'`.
     Fullwidth,
+    /// `H`: a halfwidth form of a wide character, such as `'ｱ'`.
     Halfwidth,
+    /// `N`: a character that does not occur in East Asian legacy text, such as `'א'`.
     Neutral,
+    /// `Na`: a narrow character with a fullwidth counterpart, such as `'a'`.
     Narrow,
+    /// `W`: a wide character, such as `'日'` or `'😀'`.
     Wide,
 }
 
 /// The emoji properties of a character (UTS #51).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct EmojiProperties {
+    /// `Emoji`: the character is an emoji, including ones shown as text by default, such as `'#'`.
     pub emoji: bool,
+    /// `Emoji_Presentation`: the character is shown as an emoji by default.
     pub presentation: bool,
+    /// `Emoji_Modifier`: a skin-tone modifier, U+1F3FB to U+1F3FF.
     pub modifier: bool,
+    /// `Emoji_Modifier_Base`: the character can take a skin-tone modifier, such as `'👍'`.
     pub modifier_base: bool,
+    /// `Emoji_Component`: the character is used in emoji sequences, such as a regional indicator.
     pub component: bool,
+    /// `Extended_Pictographic`: the character is pictographic or reserved for future emoji; used by
+    /// grapheme segmentation.
     pub extended_pictographic: bool,
 }
 
@@ -256,6 +301,7 @@ impl DecompositionType {
     }
 
     /// True for a canonical decomposition, false for a compatibility one.
+    #[must_use]
     pub fn is_canonical(self) -> bool {
         self == Self::Canonical
     }
@@ -326,11 +372,13 @@ impl NumericValue {
 
     /// The value as a floating-point number. Fractions such as 1/3 are rounded.
     #[allow(clippy::cast_precision_loss)] // Unicode numeric values fit an f64 mantissa.
+    #[must_use]
     pub fn as_f64(self) -> f64 {
         self.numerator as f64 / self.denominator as f64
     }
 
     /// The value if it is an integer, as for `'Ⅻ'` (12), or `None` for a fraction.
+    #[must_use]
     pub fn as_integer(self) -> Option<i64> {
         (self.denominator == 1).then_some(self.numerator)
     }
@@ -431,67 +479,95 @@ fn info(c: char) -> Option<sys::mjb_character> {
 pub trait CharExt {
     /// The `UnicodeData.txt` record of the character, or `None` if it is unassigned. Use it to
     /// read several fields with one lookup.
+    #[must_use]
     fn info(self) -> Option<CharInfo>;
     /// The `General_Category` of the character.
+    #[must_use]
     fn general_category(self) -> GeneralCategory;
     /// The `Canonical_Combining_Class` of the character: 0 for starters and unassigned
     /// characters, 230 for most marks above.
+    #[must_use]
     fn canonical_combining_class(self) -> u8;
     /// The `Bidi_Class` of the character, or `None` if it is unassigned.
+    #[must_use]
     fn bidi_class(self) -> Option<BidiClass>;
     /// True if the character is `Bidi_Mirrored`, as `(` and `<` are.
+    #[must_use]
     fn is_bidi_mirrored(self) -> bool;
     /// The `Decomposition_Type` of the character, or `None` if it has no decomposition mapping.
+    #[must_use]
     fn decomposition_type(self) -> Option<DecompositionType>;
     /// The `Simple_Uppercase_Mapping` of the character: one character, unlike
     /// [`char::to_uppercase`]. The character itself when it has none.
+    #[must_use]
     fn simple_uppercase(self) -> char;
     /// The `Simple_Lowercase_Mapping` of the character. The character itself when it has none.
+    #[must_use]
     fn simple_lowercase(self) -> char;
     /// The `Simple_Titlecase_Mapping` of the character: `'ǆ'` becomes `'ǅ'`. The simple
     /// uppercase mapping when it has none.
+    #[must_use]
     fn simple_titlecase(self) -> char;
     /// The character name, such as `"LATIN SMALL LETTER E WITH ACUTE"`, if it has one.
     #[cfg(feature = "names")]
+    #[must_use]
     fn name(self) -> Option<String>;
     /// The block that contains the character, such as `Basic Latin`. See [`Block::of`].
+    #[must_use]
     fn block(self) -> Option<Block>;
     /// The `Script` of the character, such as [`Script`] `Latn` for `'a'`. Characters shared by
     /// several scripts are [`Script::COMMON`], and unassigned ones [`Script::UNKNOWN`].
+    #[must_use]
     fn script(self) -> Option<Script>;
     /// The exact `Numeric_Value` of the character: `'Ⅻ'` is 12, `'½'` is 1/2.
+    #[must_use]
     fn numeric_value(self) -> Option<NumericValue>;
     /// The `East_Asian_Width` of the character.
+    #[must_use]
     fn east_asian_width(self) -> Option<EastAsianWidth>;
     /// The emoji properties of the character.
+    #[must_use]
     fn emoji_properties(self) -> EmojiProperties;
     /// True if the character is graphic (letter, mark, number, punctuation, symbol, or space).
+    #[must_use]
     fn is_graphic(self) -> bool;
     /// True if the character is a combining mark.
+    #[must_use]
     fn is_combining(self) -> bool;
     /// UAX #31 `XID_Start`.
+    #[must_use]
     fn is_xid_start(self) -> bool;
     /// UAX #31 `XID_Continue`.
+    #[must_use]
     fn is_xid_continue(self) -> bool;
     /// The Unicode plane that contains the character.
+    #[must_use]
     fn plane(self) -> Plane;
     /// True for a CJK unified ideograph: the main block, U+4E00 to U+9FFF, or one of its
     /// extensions. Compatibility ideographs are not included.
+    #[must_use]
     fn is_cjk_ideograph(self) -> bool;
     /// True for a CJK unified ideograph of one of the extension blocks, A to J.
+    #[must_use]
     fn is_cjk_extension_ideograph(self) -> bool;
     /// UAX #31 `ID_Start`.
+    #[must_use]
     fn is_id_start(self) -> bool;
     /// UAX #31 `ID_Continue`.
+    #[must_use]
     fn is_id_continue(self) -> bool;
     /// UAX #31 `Pattern_Syntax`.
+    #[must_use]
     fn is_pattern_syntax(self) -> bool;
     /// UAX #31 `Pattern_White_Space`.
+    #[must_use]
     fn is_pattern_white_space(self) -> bool;
     /// The character's `Script_Extensions`, or its `Script` when it has no explicit
     /// extensions: `'ー'` (U+30FC) is used by both `Hira` and `Kana`.
+    #[must_use]
     fn script_extensions(self) -> Vec<Script>;
     /// The value of a binary property, such as `Alphabetic`. False for a non-binary property.
+    #[must_use]
     fn has_property(self, property: Property) -> bool;
     /// The value of an enumerated property in the C library's property table, as the raw C enum
     /// value from `src/unicode.h`, such as an `mjb_script` for `Script`.
@@ -503,6 +579,7 @@ pub trait CharExt {
     ///
     /// `None` when the character has no stored value for the property, and for binary
     /// properties, which [`has_property`](CharExt::has_property) reads.
+    #[must_use]
     fn property_value(self, property: Property) -> Option<i32>;
 }
 

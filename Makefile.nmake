@@ -367,13 +367,16 @@ ctest-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
-# Run the Rust crates' tests, with every optional feature on and then off, plus clippy and rustfmt
+# Run the Rust crates' tests, with every optional feature on and then off, plus clippy, rustfmt,
+# and warning-free docs
 test-rust:
 	cd src\rust && cargo fmt --check
 	cd src\rust && cargo clippy --all-targets --all-features -- -D warnings
 	cd src\rust && cargo clippy --all-targets -p mojibake-rs --no-default-features -- -D warnings
 	cd src\rust && cargo test --all-features
 	cd src\rust && cargo test -p mojibake-rs --no-default-features
+	cd src\rust && cargo rustdoc -p mojibake-sys -- -D warnings
+	cd src\rust && cargo rustdoc -p mojibake-rs --all-features -- -D warnings
 
 # Copy the C sources into src\rust\mojibake-sys\csrc (git-ignored) so the crate is self-contained
 vendor-rust:

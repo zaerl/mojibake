@@ -143,6 +143,7 @@ impl BidiClass {
     }
 
     /// The short alias of the class, such as `"AL"`.
+    #[must_use]
     pub fn abbreviation(self) -> &'static str {
         match self {
             Self::LeftToRight => "L",
@@ -172,6 +173,7 @@ impl BidiClass {
     }
 
     /// True for the strong classes `L`, `R`, and `AL`.
+    #[must_use]
     pub fn is_strong(self) -> bool {
         matches!(
             self,
@@ -222,6 +224,10 @@ impl<'a> Paragraph<'a> {
     ///
     /// The text should not contain paragraph separators other than an optional trailing one;
     /// split it into paragraphs first.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::NoMemory`] if the library cannot allocate memory.
     pub fn new(text: &'a str, direction: Direction) -> Result<Self> {
         let input = ffi::text(text);
         let mut raw = sys::mjb_bidi_paragraph::default();
@@ -235,6 +241,7 @@ impl<'a> Paragraph<'a> {
     }
 
     /// The paragraph text.
+    #[must_use]
     pub fn text(&self) -> &'a str {
         self.text
     }
@@ -250,26 +257,31 @@ impl<'a> Paragraph<'a> {
     }
 
     /// The number of characters of the paragraph, after rule X9 removed the control characters.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.raw_chars().len()
     }
 
     /// Whether the paragraph has no characters.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// The paragraph embedding level: 0 for left to right, 1 for right to left.
+    #[must_use]
     pub fn level(&self) -> u8 {
         self.raw.paragraph_level
     }
 
     /// The resolved paragraph direction, never [`Direction::Auto`].
+    #[must_use]
     pub fn direction(&self) -> Direction {
         Direction::from_level(self.raw.paragraph_level)
     }
 
     /// The resolved embedding level of each character, in logical order.
+    #[must_use]
     pub fn levels(&self) -> Vec<u8> {
         self.raw_chars().iter().map(|c| c.level).collect()
     }
@@ -293,6 +305,11 @@ impl<'a> Paragraph<'a> {
 
     /// The bytes of the text that the paragraph positions `range` cover, including any removed
     /// control characters that follow the last one.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidArgument`] if `range.start > range.end` or
+    /// `range.end` is past [`Paragraph::len`].
     pub fn byte_range(&self, range: Range<usize>) -> Result<Range<usize>> {
         let chars = self.raw_chars();
 
@@ -309,6 +326,13 @@ impl<'a> Paragraph<'a> {
     ///
     /// The result lists the paragraph positions in visual order, from left to right. An empty
     /// line gives an empty vector.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidArgument`] if `line.start > line.end` or
+    /// `line.end` is past [`Paragraph::len`].
+    ///
+    /// [`Error::NoMemory`] if the library cannot allocate memory.
     pub fn reorder_line(&self, line: Range<usize>) -> Result<Vec<usize>> {
         if line.start > line.end || line.end > self.len() {
             return Err(Error::InvalidArgument);
@@ -330,6 +354,13 @@ impl<'a> Paragraph<'a> {
 
     /// Split the reordered line made of the paragraph positions `line` into level runs, from left
     /// to right.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidArgument`] if `line.start > line.end` or
+    /// `line.end` is past [`Paragraph::len`].
+    ///
+    /// [`Error::NoMemory`] if the library cannot allocate memory.
     pub fn runs(&self, line: Range<usize>) -> Result<Vec<Run>> {
         let order = self.reorder_line(line)?;
         let mut count = 0;
@@ -387,6 +418,13 @@ impl<'a> Paragraph<'a> {
 
     /// The line made of the paragraph positions `line` in visual order, with mirrored characters
     /// replaced by their mirroring glyphs (rule L4). Removed control characters are left out.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidArgument`] if `line.start > line.end` or
+    /// `line.end` is past [`Paragraph::len`].
+    ///
+    /// [`Error::NoMemory`] if the library cannot allocate memory.
     pub fn visual(&self, line: Range<usize>) -> Result<String> {
         let order = self.reorder_line(line)?;
         let chars: Vec<BidiChar> = self.chars().collect();

@@ -21,6 +21,9 @@
 //! Most string APIs return [`Cow<str>`](std::borrow::Cow): when the C library reports that the
 //! input is already in the requested form, the input is borrowed and nothing is allocated.
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![warn(missing_docs, clippy::missing_errors_doc, clippy::must_use_candidate)]
+
 mod case;
 mod character;
 mod error;
@@ -76,12 +79,14 @@ pub use str_ext::StrExt;
 pub use width::{terminal_width, truncate_to_width, WidthProfile};
 
 /// The Mojibake library version, such as `"0.5.1"`.
+#[must_use]
 pub fn version() -> &'static str {
     // SAFETY: mjb_version returns a static NUL-terminated ASCII string.
     unsafe { ffi::static_str(mojibake_sys::mjb_version()) }.unwrap_or("")
 }
 
 /// The Unicode version of the library's data, such as `"18.0.0"`.
+#[must_use]
 pub fn unicode_version() -> &'static str {
     // SAFETY: mjb_unicode_version returns a static NUL-terminated ASCII string.
     unsafe { ffi::static_str(mojibake_sys::mjb_unicode_version()) }.unwrap_or("")

@@ -34,11 +34,13 @@ impl Filter {
     pub const LIMIT_COMBINING: Self = Self(sys::MJB_FILTER_LIMIT_COMBINING);
 
     /// True if every filter in `other` is also in `self`.
+    #[must_use]
     pub const fn contains(self, other: Self) -> bool {
         self.0 & other.0 == other.0
     }
 
     /// True if no filter is set.
+    #[must_use]
     pub const fn is_empty(self) -> bool {
         self.0 == 0
     }
@@ -94,6 +96,10 @@ impl fmt::Debug for Filter {
 /// Apply `filters` to `s`: `filter("a \t b", Filter::COLLAPSE_SPACES)` is `"a b"`.
 ///
 /// The input is borrowed when no filter changes it.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn filter(s: &str, filters: Filter) -> Result<Cow<'_, str>> {
     ffi::transform(s, |text, result, diagnostic| unsafe {
         // SAFETY: all pointers are valid for the duration of the call.

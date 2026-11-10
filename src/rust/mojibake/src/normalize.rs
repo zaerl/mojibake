@@ -112,6 +112,10 @@ pub enum QuickCheck {
 }
 
 /// Normalize `s` to `form`. The input is borrowed when it is already normalized.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn normalize(s: &str, form: Form) -> Result<Cow<'_, str>> {
     ffi::transform(s, |text, result, diagnostic| unsafe {
         sys::mjb_normalize(
@@ -149,6 +153,10 @@ pub fn is_normalized(s: &str, form: Form) -> Result<bool> {
 }
 
 /// Apply the `NFKC_Casefold` transform, used for identifier and caseless comparison.
+///
+/// # Errors
+///
+/// [`Error::NoMemory`](crate::Error::NoMemory) if the library cannot allocate memory.
 pub fn nfkc_casefold(s: &str) -> Result<Cow<'_, str>> {
     ffi::transform(s, |text, result, diagnostic| unsafe {
         sys::mjb_nfkc_casefold(

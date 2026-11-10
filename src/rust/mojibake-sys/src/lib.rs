@@ -7,8 +7,9 @@
 //! These declarations mirror `src/mojibake.h`. The functions are generated from
 //! `utils/generate/functions.ts` into `src/functions.rs`; the types and constants are written by
 //! hand. C enums are exposed as `c_int` type aliases with constants rather than Rust enums,
-//! because receiving an out-of-range value in a Rust enum is undefined behavior. The layout tests at the bottom of this file compare every struct with the
-//! C compiler's view through `shim/layout.c`.
+//! because receiving an out-of-range value in a Rust enum is undefined behavior. The layout tests
+//! at the bottom of this file compare every struct with the C compiler's view through
+//! `shim/layout.c`.
 //!
 //! Use the safe `mojibake` crate unless you need the raw API.
 

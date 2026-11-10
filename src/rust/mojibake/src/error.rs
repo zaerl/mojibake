@@ -28,17 +28,32 @@ impl From<sys::mjb_diagnostic> for Diagnostic {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Error {
+    /// An argument is invalid or inconsistent with the operation, such as a malformed language
+    /// tag or a range outside a bidi paragraph.
     InvalidArgument,
+    /// The encoding is invalid or lacks byte-order information, such as [`Encoding::Utf16`]
+    /// as an output encoding, or UTF-16 input without a byte order mark.
+    ///
+    /// [`Encoding::Utf16`]: crate::encoding::Encoding::Utf16
     InvalidEncoding,
+    /// A value is not a Unicode scalar value.
     InvalidCodepoint,
+    /// The normalization form is invalid, as when [`Form`](crate::Form) parses an unknown name.
     InvalidForm,
+    /// The operation, conversion, or value is not supported.
     Unsupported,
+    /// The C library could not allocate memory.
     NoMemory,
+    /// A size exceeds the range the library supports.
     Overflow,
     /// Ill-formed input, with its location when the library reported one.
     MalformedInput(Option<Diagnostic>),
+    /// A caller-provided buffer is too small for the complete result.
     OutputTooSmall,
+    /// No Unicode data exists for the value, as when a script code or a category name is
+    /// unknown.
     NotFound,
+    /// The operation needs a Cargo feature that was turned off, such as `collation`.
     FeatureNotEnabled,
     /// A status this version of the bindings does not know.
     Other(i32),
