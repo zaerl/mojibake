@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+- `MJB_FILTER_LIMIT_COMBINING` no longer restarts its count at a Default_Ignorable_Code_Point
+  character, so inserting U+200D ZERO WIDTH JOINER between runs of marks cannot stack more than
+  `MJB_FILTER_MAX_COMBINING_MARKS` marks on one letter
+- Documented that `MJB_FILTER_LIMIT_COMBINING` counts every combining mark (Mn, Mc, and Me) in
+  any block, so a mark outside U+0300 to U+036F, such as U+0489, does not restart the count
 
 ## [0.7.0] - 2026-11-10
 Codename: [LATIN SMALL LETTER P]

@@ -444,10 +444,15 @@ std::cout << "NFC: " << output << std::endl;`
       diagnostic()
     ],
     details: '`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first ' +
-      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful ' +
+      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. Every combining ' +
+      'mark counts, in any block: general categories Mn, Mc, and Me. An emitted character ' +
+      'that is neither a combining mark nor a Default_Ignorable_Code_Point, such as U+200D ' +
+      'ZERO WIDTH JOINER, starts a new run. This is useful ' +
       'for reducing Zalgo-style text while keeping ordinary accents and stacked marks. ' +
-      'Malformed subsequences are stopped, replaced, or skipped according to ' +
-      '`malformed_policy`; `diagnostic` records the first one encountered.',
+      'Some scripts, such as Biblical Hebrew and Quranic Arabic, can use more than four ' +
+      'marks on one letter; define `MJB_FILTER_MAX_COMBINING_MARKS` at compile time to ' +
+      'raise the default of 4. Malformed subsequences are stopped, replaced, or skipped ' +
+      'according to `malformed_policy`; `diagnostic` records the first one encountered.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The filtered string was returned' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
@@ -531,7 +536,9 @@ std::cout << "Filtered: " << mjb::filter(controls, mjb::Filter::Controls) << std
       'capacity. Filtering itself ' +
       'does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization ' +
       'storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first ' +
-      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed ' +
+      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run, counting ' +
+      'every Mn, Mc, and Me mark and ignoring Default_Ignorable_Code_Point characters as ' +
+      '`mjb_filter` does. Malformed ' +
       'subsequences follow `malformed_policy`, and `diagnostic` records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description:

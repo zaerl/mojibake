@@ -116,7 +116,11 @@ static mjb_status mjb_filter_process(const mjb_filter_context *context, mjb_outp
                 }
 
                 ++combining_mark_count;
-            } else {
+            } else if(combining_mark_count != 0 &&
+                !mjb_codepoint_has_binary_property(codepoint,
+                    MJB_PR_DEFAULT_IGNORABLE_CODE_POINT)) {
+                // Invisible characters such as U+200D ZERO WIDTH JOINER do not end the run,
+                // so they cannot be used to stack more marks on the same base.
                 combining_mark_count = 0;
             }
         }

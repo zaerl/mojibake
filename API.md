@@ -719,7 +719,7 @@ mjb_status mjb_filter(
 );
 ```
 
-`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`; `diagnostic` records the first one encountered.
+`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. Every combining mark counts, in any block: general categories Mn, Mc, and Me. An emitted character that is neither a combining mark nor a Default_Ignorable_Code_Point, such as U+200D ZERO WIDTH JOINER, starts a new run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks. Some scripts, such as Biblical Hebrew and Quranic Arabic, can use more than four marks on one letter; define `MJB_FILTER_MAX_COMBINING_MARKS` at compile time to raise the default of 4. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`; `diagnostic` records the first one encountered.
 
 - `text` - The text to filter
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -783,7 +783,7 @@ mjb_status mjb_filter_into(
 );
 ```
 
-Apply the same filters as `mjb_filter` without allocating the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Apply the same filters as `mjb_filter` without allocating the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run, counting every Mn, Mc, and Me mark and ignoring Default_Ignorable_Code_Point characters as `mjb_filter` does. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `text` - The text to filter
 - `malformed_policy` - How malformed code-unit sequences are handled
