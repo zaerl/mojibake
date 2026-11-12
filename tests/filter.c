@@ -377,6 +377,88 @@ ATT_TEST(filter) {
     ATT_ASSERT(result.owned, true, "Limit stacked combining marks owned");
     mjb_result_free(&result);
 
+    // An enclosing mark outside U+0300..U+036F counts toward the limit and does not reset it.
+    // clang-format off
+    const char *split_by_enclosing_mark = "a"
+        "\xCC\x80" // U+0300 COMBINING GRAVE ACCENT
+        "\xCC\x81" // U+0301 COMBINING ACUTE ACCENT
+        "\xD2\x89" // U+0489 COMBINING CYRILLIC MILLIONS SIGN (Me)
+        "\xCC\x82" // U+0302 COMBINING CIRCUMFLEX ACCENT
+        "\xCC\x83" // U+0303 COMBINING TILDE
+        "b";
+    const char *expected_split_by_enclosing_mark = "a"
+        "\xCC\x80" // U+0300 COMBINING GRAVE ACCENT
+        "\xCC\x81" // U+0301 COMBINING ACUTE ACCENT
+        "\xD2\x89" // U+0489 COMBINING CYRILLIC MILLIONS SIGN (Me)
+        "\xCC\x82" // U+0302 COMBINING CIRCUMFLEX ACCENT
+        "b";
+    // clang-format on
+
+    text = mjb_text_make(split_by_enclosing_mark, strlen(split_by_enclosing_mark), enc);
+
+    ATT_ASSERT_STATUS(mjb_filter(&text, MJB_MALFORMED_REPLACE,
+                          MJB_FILTER_LIMIT_COMBINING, enc, &result, NULL),
+        MJB_STATUS_OK, "Limit combining across enclosing mark");
+    ATT_ASSERT(strcmp(result.output, expected_split_by_enclosing_mark), 0,
+        "Limit combining across enclosing mark output");
+    ATT_ASSERT(result.output_size, strlen(expected_split_by_enclosing_mark),
+        "Limit combining across enclosing mark size");
+    ATT_ASSERT(result.owned, true, "Limit combining across enclosing mark owned");
+    mjb_result_free(&result);
+
+    // An invisible U+200D ZERO WIDTH JOINER between runs does not reset the count.
+    // clang-format off
+    const char *split_by_zwj = "a"
+        "\xCC\x80" // U+0300 COMBINING GRAVE ACCENT
+        "\xCC\x81" // U+0301 COMBINING ACUTE ACCENT
+        "\xCC\x82" // U+0302 COMBINING CIRCUMFLEX ACCENT
+        "\xE2\x80\x8D" // U+200D ZERO WIDTH JOINER
+        "\xCC\x83" // U+0303 COMBINING TILDE
+        "\xCC\x84" // U+0304 COMBINING MACRON
+        "\xCC\x85" // U+0305 COMBINING OVERLINE
+        "b"
+        "\xCC\x80"; // U+0300 COMBINING GRAVE ACCENT
+    const char *expected_split_by_zwj = "a"
+        "\xCC\x80" // U+0300 COMBINING GRAVE ACCENT
+        "\xCC\x81" // U+0301 COMBINING ACUTE ACCENT
+        "\xCC\x82" // U+0302 COMBINING CIRCUMFLEX ACCENT
+        "\xE2\x80\x8D" // U+200D ZERO WIDTH JOINER
+        "\xCC\x83" // U+0303 COMBINING TILDE
+        "b"
+        "\xCC\x80"; // U+0300 COMBINING GRAVE ACCENT
+    // clang-format on
+
+    text = mjb_text_make(split_by_zwj, strlen(split_by_zwj), enc);
+
+    ATT_ASSERT_STATUS(mjb_filter(&text, MJB_MALFORMED_REPLACE,
+                          MJB_FILTER_LIMIT_COMBINING, enc, &result, NULL),
+        MJB_STATUS_OK, "Limit combining across zero width joiner");
+    ATT_ASSERT(strcmp(result.output, expected_split_by_zwj), 0,
+        "Limit combining across zero width joiner output");
+    ATT_ASSERT(result.output_size, strlen(expected_split_by_zwj),
+        "Limit combining across zero width joiner size");
+    ATT_ASSERT(result.owned, true, "Limit combining across zero width joiner owned");
+    mjb_result_free(&result);
+
+    // An emoji after a zero width joiner is a new base, so emoji ZWJ sequences are unchanged.
+    // clang-format off
+    const char *emoji_zwj_sequence =
+        "\xE2\x9D\xA4" // U+2764 HEAVY BLACK HEART
+        "\xEF\xB8\x8F" // U+FE0F VARIATION SELECTOR-16
+        "\xE2\x80\x8D" // U+200D ZERO WIDTH JOINER
+        "\xF0\x9F\x94\xA5"; // U+1F525 FIRE
+    // clang-format on
+
+    text = mjb_text_make(emoji_zwj_sequence, strlen(emoji_zwj_sequence), enc);
+
+    ATT_ASSERT_STATUS(mjb_filter(&text, MJB_MALFORMED_REPLACE,
+                          MJB_FILTER_LIMIT_COMBINING, enc, &result, NULL),
+        MJB_STATUS_OK, "Limit combining emoji ZWJ sequence");
+    ATT_ASSERT(result.output_size, strlen(emoji_zwj_sequence),
+        "Limit combining emoji ZWJ sequence size");
+    ATT_ASSERT(result.owned, false, "Limit combining emoji ZWJ sequence owned");
+    mjb_result_free(&result);
+
     // clang-format off
     const char *split_by_removed_control = "a"
         "\xCC\x80" // U+0300 COMBINING GRAVE ACCENT
