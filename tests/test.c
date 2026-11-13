@@ -4,8 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <time.h>
-
 // clang-format off
 #ifdef _WIN32
     #include "../src/shell/getopt/getopt.h"
@@ -444,13 +442,6 @@ static void test_started(const char *name) {
 }
 
 int main(int argc, char *const argv[]) {
-#ifdef _WIN32
-    LARGE_INTEGER frequency, start, end;
-    QueryPerformanceFrequency(&frequency);
-#else
-    struct timespec start, end;
-#endif
-    double elapsed = 0;
     unsigned int verbosity = 1;
     int option = 0;
     int option_index = 0;
@@ -466,12 +457,6 @@ int main(int argc, char *const argv[]) {
         "Filter tests by name in the form name1,name2,...", "Show this help message",
         "Verbose output. -vv for more verbosity", "Print version",
         "Exit immediately on first test failure" };
-
-#ifdef _WIN32
-    QueryPerformanceCounter(&start);
-#else
-    clock_gettime(CLOCK_MONOTONIC, &start);
-#endif
 
     att_set_verbose(verbosity);
 
@@ -552,15 +537,6 @@ int main(int argc, char *const argv[]) {
     }
 
     write_coverage_file();
-
-#ifdef _WIN32
-    QueryPerformanceCounter(&end);
-    elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
-#else
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    elapsed = (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1e9;
-#endif
-    printf("Execution time: %.4f seconds\n", elapsed);
 
     return all_valid ? 0 : -1;
 }

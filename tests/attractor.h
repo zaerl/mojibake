@@ -23,12 +23,19 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define ATT_VERSION_NUMBER 0x110 // MAJOR << 8 | MINOR << 4 | REVISION
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#else
+    #include <time.h>
+#endif
+
+#define ATT_VERSION_NUMBER 0x120 // MAJOR << 8 | MINOR << 4 | REVISION
 #define ATT_VERSION_MAJOR 1
-#define ATT_VERSION_MINOR 1
+#define ATT_VERSION_MINOR 2
 #define ATT_VERSION_REVISION 0
 
-#define ATT_VERSION "1.1.0"
+#define ATT_VERSION "1.2.0"
 
 #ifdef __cplusplus
 // MSVC reports __cplusplus as 199711L unless /Zc:__cplusplus is passed, while _MSVC_LANG
@@ -71,6 +78,10 @@ extern "C" {
 
 #ifndef ATT_SHOW_ERROR
     #define ATT_SHOW_ERROR 1
+#endif
+
+#ifndef ATT_SHOW_EXECUTION_TIME
+    #define ATT_SHOW_EXECUTION_TIME 1
 #endif
 
 // Emit TAP (Test Anything Protocol) output.
@@ -205,6 +216,7 @@ ATT_API int att_report(void);
 
 ATT_API void att_set_verbose(unsigned int verbose);
 ATT_API void att_set_show_error(unsigned int show_error);
+ATT_API void att_set_show_execution_time(unsigned int show_execution_time);
 ATT_API void att_set_tap(unsigned int tap);
 
 // Tolerance used for float, double and long double comparisons.
@@ -688,6 +700,7 @@ static att_atomic_uint att_valid_tests = 0;
 static att_atomic_uint att_total_tests = 0;
 static unsigned int att_verbose = ATT_VERBOSE;
 static unsigned int att_show_error = ATT_SHOW_ERROR;
+static unsigned int att_show_execution_time = ATT_SHOW_EXECUTION_TIME;
 static unsigned int att_tap = ATT_TAP;
 static int att_show_colors = 0;
 // Whether stdout currently ends with an unterminated line of verbose = 1 dots.
@@ -719,6 +732,10 @@ void att_set_verbose(unsigned int verbose) {
 
 void att_set_show_error(unsigned int show_error) {
     att_show_error = show_error;
+}
+
+void att_set_show_execution_time(unsigned int show_execution_time) {
+    att_show_execution_time = show_execution_time;
 }
 
 void att_set_tap(unsigned int tap) {
@@ -860,7 +877,7 @@ int att_assert(const char *format, int test, const char *description) {
         }
     } else {
         const char *ok = att_show_colors ? "\x1B[32mOK\x1B[0m" : "OK";
-        const char *fail = att_show_colors ? "\x1B[31mNO\x1B[0m" : "NO";
+        const char *fail = att_show_colors ? "\x1B[31mFAIL\x1B[0m" : "FAIL";
 
         att_printf(att_show_colors ? "%s [\x1b[36m%s\x1b[0m] %s\n" : "%s [%s] %s\n", test ? ok : fail,
             format, description);
@@ -1056,6 +1073,32 @@ static int att_test_matches(const char *name, const char *filter) {
     return filter == NULL || strstr(name, filter) != NULL;
 }
 
+// Monotonic wall-clock time in seconds.
+static double monotonic_seconds(void) {
+#ifdef _WIN32
+    LARGE_INTEGER frequency, counter;
+
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&counter);
+
+    return (double)counter.QuadPart / (double)frequency.QuadPart;
+#elif defined(CLOCK_MONOTONIC)
+    struct timespec now;
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+    return (double)now.tv_sec + (double)now.tv_nsec / 1e9;
+#elif defined(TIME_UTC)
+    struct timespec now;
+
+    timespec_get(&now, TIME_UTC);
+
+    return (double)now.tv_sec + (double)now.tv_nsec / 1e9;
+#else
+    return (double)clock() / (double)CLOCKS_PER_SEC;
+#endif
+}
+
 int att_run_tests(const char *filter) {
     unsigned int registered = (unsigned int)att_registered_tests;
     unsigned int count = registered < ATT_MAX_TESTS ? registered : ATT_MAX_TESTS;
@@ -1063,6 +1106,8 @@ int att_run_tests(const char *filter) {
     unsigned int failed = 0;
     unsigned int run_id = ++att_run_count;
     unsigned int i;
+    double elapsed = 0;
+    double start = monotonic_seconds();
 
     att_console_init();
 
@@ -1171,6 +1216,12 @@ int att_run_tests(const char *filter) {
     if(att_tap) {
         att_printf("# Test cases valid/run: %u/%u\n", run - failed, run);
     } else {
+        elapsed = monotonic_seconds() - start;
+
+        if(att_show_execution_time) {
+            att_printf("Execution time: %.4f seconds\n", elapsed);
+        }
+
         att_printf(att_show_colors ? (failed == 0 ? "Test cases valid/run: \x1B[32m%u/%u\x1B[0m\n" :
             "Test cases valid/run: \x1B[31m%u/%u\x1B[0m\n") : "Test cases valid/run: %u/%u\n",
             run - failed, run);
