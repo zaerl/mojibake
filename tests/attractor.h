@@ -499,6 +499,13 @@ inline unsigned int att_assert_cpp(T *result, int expected, att_op op, const cha
     const char *file, unsigned int line) {
     return att_assert_cpp(result, static_cast<long>(expected), op, description, file, line);
 }
+
+// NULL is a long long constant where a pointer is wider than a long (64-bit MinGW).
+template <typename T>
+inline unsigned int att_assert_cpp(T *result, long long expected, att_op op,
+    const char *description, const char *file, unsigned int line) {
+    return att_assert_cpp(result, static_cast<long>(expected), op, description, file, line);
+}
 #endif
 
 #endif /* ATTRACTOR_H */
@@ -543,10 +550,21 @@ inline unsigned int att_assert_cpp(T *result, int expected, att_op op, const cha
 #endif
 // clang-format on
 
-#if defined(__GNUC__)
-    #define ATT_PRINTF_FORMAT __attribute__((format(printf, 1, 2)))
+// On MinGW the plain printf family and its format archetype follow the Microsoft dialect, which
+// rejects %zu and reads a long double as a double. The __mingw_ functions implement C99 instead.
+#if defined(__MINGW32__)
+    #define ATT_PRINTF_FORMAT __attribute__((format(gnu_printf, 1, 2)))
+    #define ATT_VPRINTF __mingw_vprintf
+    #define ATT_VSNPRINTF __mingw_vsnprintf
 #else
-    #define ATT_PRINTF_FORMAT
+    #if defined(__GNUC__)
+        #define ATT_PRINTF_FORMAT __attribute__((format(printf, 1, 2)))
+    #else
+        #define ATT_PRINTF_FORMAT
+    #endif
+
+    #define ATT_VPRINTF vprintf
+    #define ATT_VSNPRINTF vsnprintf
 #endif
 
 // Where the output goes: the callback if one is set, stdout otherwise.
@@ -577,14 +595,14 @@ static void att_printf(const char *format, ...) {
     va_start(args, format);
 
     if(!att_output_callback_fn) {
-        vprintf(format, args);
+        ATT_VPRINTF(format, args);
         va_end(args);
 
         return;
     }
 
     va_copy(args_copy, args);
-    length = vsnprintf(buffer, sizeof(buffer), format, args_copy);
+    length = ATT_VSNPRINTF(buffer, sizeof(buffer), format, args_copy);
     va_end(args_copy);
 
     if(length >= 0 && (size_t)length < sizeof(buffer)) {
@@ -594,7 +612,7 @@ static void att_printf(const char *format, ...) {
         char *heap = (char *)malloc((size_t)length + 1);
 
         if(heap) {
-            vsnprintf(heap, (size_t)length + 1, format, args);
+            ATT_VSNPRINTF(heap, (size_t)length + 1, format, args);
             att_output_callback_fn(heap, att_output_callback_data);
             free(heap);
         }
