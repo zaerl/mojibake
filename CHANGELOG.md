@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Updated Attractor to 1.1.0
 
 ### Fixed
 - `MJB_FILTER_LIMIT_COMBINING` no longer restarts its count at a Default_Ignorable_Code_Point
