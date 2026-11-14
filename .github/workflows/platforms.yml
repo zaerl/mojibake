@@ -19,7 +19,10 @@ concurrency:
 jobs:
   test-bsd:
     name: Test (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    # The VM action attaches a loop device, which needs a privileged container.
+    runs-on:
+      - nscloud-ubuntu-24.04-amd64-4x8-with-features
+      - namespace-features:container.privileged=true
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -41,6 +44,64 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: ./.github/actions/setup-unicode-test-data
+
+      # cross-platform-actions passes the SSH key to the VM on a FAT32 disk that it
+      # builds with fdisk, mkfs.fat, a loop device and a kernel mount. Namespace's
+      # image lacks fdisk, dosfstools and /dev/loop* nodes, and its kernel cannot
+      # mount FAT (no cp437 codepage). Provide the tools, and replace the mount of
+      # that one disk with mtools, which writes FAT in userspace. Other mount and
+      # umount calls go to the real commands.
+      - name: Prepare host for VM resource disk
+        run: |
+          packages=""
+          command -v fdisk >/dev/null 2>&1 || packages="$packages fdisk"
+          command -v mkfs.fat >/dev/null 2>&1 || packages="$packages dosfstools"
+          command -v mcopy >/dev/null 2>&1 || packages="$packages mtools"
+          if [ -n "$packages" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends $packages
+          fi
+          if ! sudo losetup -f >/dev/null 2>&1; then
+            [ -e /dev/loop-control ] || sudo mknod -m 660 /dev/loop-control c 10 237
+            for i in 0 1 2 3 4 5 6 7; do
+              [ -e "/dev/loop$i" ] || sudo mknod -m 660 "/dev/loop$i" b 7 "$i"
+            done
+          fi
+
+          # The action runs: sudo mount -o uid=N /dev/loopX <temp>/mount/RES
+          sudo tee /usr/local/sbin/mount >/dev/null <<'EOF'
+          #!/bin/sh
+          if [ "$#" -eq 4 ] && [ "$1" = "-o" ]; then
+            case "$3:$4" in
+              /dev/loop*:*/mount/RES)
+                mkdir -p /tmp/cpa-fat
+                printf '%s\n' "$3" > "/tmp/cpa-fat/$(printf '%s' "$4" | tr / _)"
+                exit 0
+                ;;
+            esac
+          fi
+          exec /usr/bin/mount "$@"
+          EOF
+
+          # The action runs: sudo umount <temp>/mount/RES
+          sudo tee /usr/local/sbin/umount >/dev/null <<'EOF'
+          #!/bin/sh
+          if [ "$#" -eq 1 ]; then
+            state="/tmp/cpa-fat/$(printf '%s' "$1" | tr / _)"
+            if [ -f "$state" ]; then
+              dev=$(cat "$state")
+              export MTOOLS_SKIP_CHECK=1
+              mcopy -s -o -i "$dev" "$1"/* ::/ || exit 1
+              mdir -i "$dev" ::/
+              rm -f "$state"
+              exit 0
+            fi
+          fi
+          exec /usr/bin/umount "$@"
+          EOF
+
+          sudo chmod 755 /usr/local/sbin/mount /usr/local/sbin/umount
+          echo "sudo resolves: $(sudo sh -c 'command -v mount; command -v umount' | tr '\n' ' ')"
 
       - name: Start ${{ matrix.label }} VM
         uses: cross-platform-actions/action@82668f1fbd89d9c99487604f822cbf6716f124d3 # v1.7.0
@@ -78,7 +139,7 @@ jobs:
 
   strict-c11:
     name: Strict C11 (source and amalgamation)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -138,7 +199,7 @@ jobs:
 
   minimum-compilers:
     name: Minimum compiler (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -235,7 +296,7 @@ jobs:
 
   portable-linux:
     name: Platform (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -277,7 +338,7 @@ jobs:
 
   cross-android:
     name: Cross-compile (Android NDK / ARM64)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -297,7 +358,7 @@ jobs:
 
   cross-ios:
     name: Cross-compile (iOS / ARM64)
-    runs-on: macos-latest
+    runs-on: namespace-profile-zaerl-macos
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
