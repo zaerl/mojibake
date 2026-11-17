@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   category Co) instead of `MJB_STATUS_NOT_FOUND`, with no name and default properties as in
   UnicodeData.txt. As a result `mjb_for_each_codepoint`, `mjb_filter`, and the CLI `char` and
   `codepoint` commands no longer drop private-use characters
+- `mjb_codepoint_info` returns a record (category Lo) for every Unicode 18 ideograph range listed
+  in UnicodeData.txt: Tangut Ideograph now ends at U+187FF and Tangut Ideograph Supplement at
+  U+18D20 (`MJB_TANGUT_IDEOGRAPH_END` and `MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END`), and the new
+  Jurchen Character (U+18E00 to U+19191, "JURCHEN CHARACTER-*") and Seal Character (U+3D000 to
+  U+3FC3F, "SMALL SEAL CHARACTER-*") ranges are handled, with the new
+  `MJB_JURCHEN_CHARACTER_START`/`_END` and `MJB_SEAL_CHARACTER_START`/`_END` limits
 - `MJB_FILTER_LIMIT_COMBINING` no longer restarts its count at a Default_Ignorable_Code_Point
   character, so inserting U+200D ZERO WIDTH JOINER between runs of marks cannot stack more than
   `MJB_FILTER_MAX_COMBINING_MARKS` marks on one letter

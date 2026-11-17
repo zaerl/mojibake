@@ -400,8 +400,17 @@ ATT_TEST(codepoint) {
     ATT_ASSERT_CHARACTER_NAME(0x17000, "TANGUT IDEOGRAPH-17000", "TANGUT IDEOGRAPH-17000");
 
     ATT_ASSERT_STATUS(mjb_codepoint_info(0x187F7, &character), MJB_STATUS_OK,
-        "<Tangut Ideograph, Last>");
+        "TANGUT IDEOGRAPH-187F7");
     ATT_ASSERT_CHARACTER_NAME(0x187F7, "TANGUT IDEOGRAPH-187F7", "TANGUT IDEOGRAPH-187F7");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x187F8, &character), MJB_STATUS_OK,
+        "TANGUT IDEOGRAPH-187F8");
+    ATT_ASSERT_CHARACTER_NAME(0x187F8, "TANGUT IDEOGRAPH-187F8", "TANGUT IDEOGRAPH-187F8");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x187FF, &character), MJB_STATUS_OK,
+        "<Tangut Ideograph, Last>");
+    ATT_ASSERT(character.category, MJB_CATEGORY_LO, "<Tangut Ideograph, Last> category");
+    ATT_ASSERT_CHARACTER_NAME(0x187FF, "TANGUT IDEOGRAPH-187FF", "TANGUT IDEOGRAPH-187FF");
 
     // Second tangut
     ATT_ASSERT_STATUS(mjb_codepoint_info(0x18D00, &character), MJB_STATUS_OK,
@@ -409,8 +418,21 @@ ATT_TEST(codepoint) {
     ATT_ASSERT_CHARACTER_NAME(0x18D00, "TANGUT IDEOGRAPH-18D00", "TANGUT IDEOGRAPH-18D00");
 
     ATT_ASSERT_STATUS(mjb_codepoint_info(0x18D1E, &character), MJB_STATUS_OK,
-        "<Tangut Ideograph Supplement, Last>");
+        "TANGUT IDEOGRAPH-18D1E");
     ATT_ASSERT_CHARACTER_NAME(0x18D1E, "TANGUT IDEOGRAPH-18D1E", "TANGUT IDEOGRAPH-18D1E");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18D1F, &character), MJB_STATUS_OK,
+        "TANGUT IDEOGRAPH-18D1F");
+    ATT_ASSERT_CHARACTER_NAME(0x18D1F, "TANGUT IDEOGRAPH-18D1F", "TANGUT IDEOGRAPH-18D1F");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18D20, &character), MJB_STATUS_OK,
+        "<Tangut Ideograph Supplement, Last>");
+    ATT_ASSERT(character.category, MJB_CATEGORY_LO,
+        "<Tangut Ideograph Supplement, Last> category");
+    ATT_ASSERT_CHARACTER_NAME(0x18D20, "TANGUT IDEOGRAPH-18D20", "TANGUT IDEOGRAPH-18D20");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18D21, &character), MJB_STATUS_NOT_FOUND,
+        "U+18D21 is unassigned");
 
     // First tangut component
     ATT_ASSERT_STATUS(mjb_codepoint_info(0x18800, &character), MJB_STATUS_OK,
@@ -442,6 +464,45 @@ ATT_TEST(codepoint) {
         "KHITAN SMALL SCRIPT CHARACTER-18CFF");
     ATT_ASSERT_CHARACTER_NAME(0x18CFF, "KHITAN SMALL SCRIPT CHARACTER-18CFF",
         "KHITAN SMALL SCRIPT CHARACTER-18CFF");
+
+    // Jurchen characters
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18E00, &character), MJB_STATUS_OK,
+        "<Jurchen Character, First>");
+    ATT_ASSERT(character.codepoint, 0x18E00, "<Jurchen Character, First> codepoint");
+    ATT_ASSERT(character.category, MJB_CATEGORY_LO, "<Jurchen Character, First> category");
+    ATT_ASSERT(character.bidirectional, MJB_PR_BIDI_CLASS_L, "<Jurchen Character, First> bidi");
+    ATT_ASSERT_CHARACTER_NAME(0x18E00, "JURCHEN CHARACTER-18E00", "JURCHEN CHARACTER-18E00");
+    ATT_ASSERT(mjb_codepoint_script(0x18E00), MJB_SC_JURC, "JURCHEN CHARACTER-18E00 script");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x19191, &character), MJB_STATUS_OK,
+        "<Jurchen Character, Last>");
+    ATT_ASSERT(character.category, MJB_CATEGORY_LO, "<Jurchen Character, Last> category");
+    ATT_ASSERT_CHARACTER_NAME(0x19191, "JURCHEN CHARACTER-19191", "JURCHEN CHARACTER-19191");
+    ATT_ASSERT(mjb_codepoint_script(0x19191), MJB_SC_JURC, "JURCHEN CHARACTER-19191 script");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x19192, &character), MJB_STATUS_NOT_FOUND,
+        "U+19192 is unassigned");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x191A0, &character), MJB_STATUS_OK,
+        "JURCHEN RADICAL-01");
+    ATT_ASSERT_CHARACTER_NAME(0x191A0, "JURCHEN RADICAL-01", "JURCHEN RADICAL-01");
+
+    // Small seal characters
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x3D000, &character), MJB_STATUS_OK,
+        "<Seal Character, First>");
+    ATT_ASSERT(character.codepoint, 0x3D000, "<Seal Character, First> codepoint");
+    ATT_ASSERT(character.category, MJB_CATEGORY_LO, "<Seal Character, First> category");
+    ATT_ASSERT_CHARACTER_NAME(0x3D000, "SMALL SEAL CHARACTER-3D000", "SMALL SEAL CHARACTER-3D000");
+    ATT_ASSERT(mjb_codepoint_script(0x3D000), MJB_SC_SEAL, "SMALL SEAL CHARACTER-3D000 script");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x3FC3F, &character), MJB_STATUS_OK,
+        "<Seal Character, Last>");
+    ATT_ASSERT(character.category, MJB_CATEGORY_LO, "<Seal Character, Last> category");
+    ATT_ASSERT_CHARACTER_NAME(0x3FC3F, "SMALL SEAL CHARACTER-3FC3F", "SMALL SEAL CHARACTER-3FC3F");
+    ATT_ASSERT(mjb_codepoint_script(0x3FC3F), MJB_SC_SEAL, "SMALL SEAL CHARACTER-3FC3F script");
+
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x3FC40, &character), MJB_STATUS_NOT_FOUND,
+        "U+3FC40 is unassigned");
 
     ATT_ASSERT_STATUS(mjb_codepoint_info(0x14400, &character), MJB_STATUS_OK,
         "ANATOLIAN HIEROGLYPH 1");

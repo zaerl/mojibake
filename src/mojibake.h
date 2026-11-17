@@ -210,10 +210,10 @@ typedef uint32_t mjb_codepoint;
 
 // Tangut Ideographs
 #define MJB_TANGUT_IDEOGRAPH_START 0x17000
-#define MJB_TANGUT_IDEOGRAPH_END 0x187F7
+#define MJB_TANGUT_IDEOGRAPH_END 0x187FF
 
 #define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START 0x18D00
-#define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END 0x18D1E
+#define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END 0x18D20
 
 // Tangut components
 #define MJB_TANGUT_COMPONENT_START 0x18800
@@ -225,6 +225,14 @@ typedef uint32_t mjb_codepoint;
 // Khitan Small Script Characters
 #define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START 0x18B00
 #define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END 0x18CFF
+
+// Jurchen Characters
+#define MJB_JURCHEN_CHARACTER_START 0x18E00
+#define MJB_JURCHEN_CHARACTER_END 0x19191
+
+// Small Seal Characters
+#define MJB_SEAL_CHARACTER_START 0x3D000
+#define MJB_SEAL_CHARACTER_END 0x3FC3F
 
 // Numeric values, to be used when the decimal and digit mjb_character fields are not valid
 #define MJB_NUMBER_NOT_VALID (-1)
