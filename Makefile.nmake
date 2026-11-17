@@ -367,6 +367,11 @@ ctest-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
+# Fail when src\ or LICENSE has uncommitted or untracked changes, unless ALLOW_DIRTY=1. findstr
+# fails when git prints nothing; ver resets the error level then. (for /F over the output would
+# fail on a clean tree: it sets error level 1 when its command prints nothing.)
+CHECK_COMMITTED=if not "$(ALLOW_DIRTY)"=="1" (git status --porcelain --untracked-files=all -- src LICENSE | findstr /R "." >NUL && (git status --short --untracked-files=all -- src LICENSE & echo Commit these changes first, or set ALLOW_DIRTY=1 & exit 1) || ver >NUL)
+
 # Run the Rust crates' tests, with every optional feature on and then off, plus clippy, rustfmt,
 # and warning-free docs
 test-rust:
@@ -391,7 +396,7 @@ vendor-rust:
 # Cargo counts the git-ignored csrc\ copy as uncommitted, so --allow-dirty is always passed. The
 # check below stands in for Cargo's: the packaged sources must be committed, unless ALLOW_DIRTY=1
 package-rust: vendor-rust
-	@if not "$(ALLOW_DIRTY)"=="1" for /F "delims=" %%l in ('git status --porcelain --untracked-files^=all -- src LICENSE') do @(git status --short --untracked-files=all -- src LICENSE & echo Commit these changes first, or set ALLOW_DIRTY=1 & exit 1)
+	@$(CHECK_COMMITTED)
 	cd src\rust && cargo package --workspace --locked --allow-dirty $(ARGS)
 	cd src\rust && cargo publish --workspace --locked --dry-run --allow-dirty $(ARGS)
 
@@ -426,7 +431,7 @@ vendor-elixir:
 ELIXIR_PACKAGE_DIR=build-elixir-package
 
 package-elixir: vendor-elixir
-	@if not "$(ALLOW_DIRTY)"=="1" for /F "delims=" %%l in ('git status --porcelain --untracked-files^=all -- src LICENSE') do @(git status --short --untracked-files=all -- src LICENSE & echo Commit these changes first, or set ALLOW_DIRTY=1 & exit 1)
+	@$(CHECK_COMMITTED)
 	@if exist $(ELIXIR_PACKAGE_DIR) rmdir /S /Q $(ELIXIR_PACKAGE_DIR)
 	cd src\elixir && mix deps.get
 	cd src\elixir && mix hex.build --unpack -o ..\..\$(ELIXIR_PACKAGE_DIR)
