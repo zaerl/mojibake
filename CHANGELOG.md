@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fewer features or `MOJIBAKE_BUILD=1`, compile from source. The `Elixir precompiled NIFs`
   workflow builds, checks, and uploads them
 - Elixir: Windows support with MSVC, through `Makefile.win` and `nmake`, tested in CI
+- `Makefile.nmake` gains `test-elixir`, `vendor-elixir`, and `package-elixir`, which the Windows
+  Elixir CI job runs
 
 ### Changed
 - Updated Attractor to 1.1.0

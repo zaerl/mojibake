@@ -163,18 +163,12 @@ jobs:
       - uses: ./.github/actions/setup-msvc
 
       # PowerShell, not Bash: Git Bash puts its own link.exe ahead of the MSVC linker. The NIF is
-      # built with Makefile.win through nmake, with warnings as errors.
-      - name: Test Elixir package
+      # built with Makefile.win through nmake, with warnings as errors (ELIXIR_CFLAGS).
+      - name: Test and package Elixir package
         shell: pwsh
-        working-directory: src/elixir
-        env:
-          CFLAGS: /O2 /WX
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          mix deps.get
-          mix test --warnings-as-errors
-          $env:MOJIBAKE_FEATURES = "none"
-          mix test --warnings-as-errors
+          nmake /nologo /F Makefile.nmake test-elixir package-elixir
 
   rust-windows:
     name: Test (Rust / Windows / MSVC)

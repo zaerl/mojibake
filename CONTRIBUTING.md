@@ -327,6 +327,10 @@ and builds the docs, with warnings as errors for both the Elixir code and the C 
 (`ELIXIR_CFLAGS`, `-O2 -Werror` by default). Extra `mix test` flags go in `ARGS`, for example
 `make test-elixir ARGS="--only conformance"`. Inside `src/elixir`, plain `mix test` works too.
 
+On Windows, run `nmake /F Makefile.nmake test-elixir` from an x64 Native Tools Command Prompt;
+`ELIXIR_CFLAGS` defaults to `/O2 /WX` there. `vendor-elixir` and `package-elixir` have nmake
+versions too.
+
 The NIF is `c_src/mojibake_nif.c`, built through `elixir_make` by `src/elixir/Makefile`, or by
 `src/elixir/Makefile.win` with MSVC and `nmake` on Windows. `mix.exs` hands `Makefile.win` its
 source paths and directories in Windows form, since `nmake` cannot compute them; run `mix` there
