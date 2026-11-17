@@ -21,6 +21,10 @@
 *.txt   text eol=lf
 *.yml   text eol=lf
 
+# cmd.exe can miss labels in batch files with LF line endings
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
 # Binary files
 *.db   binary
 *.wasm binary

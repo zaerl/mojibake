@@ -80,13 +80,17 @@ additionally require Emscripten and a Chromium-based browser. Docker is required
 Docker and fuzz targets. clang-tidy (for example Homebrew `llvm`) is needed only for `make tidy`.
 
 The test executable reads the Unicode conformance files from `unicode-data/` and exits early if
-`unicode-data/UCD/CaseFolding.txt` is missing. On a fresh checkout, fetch them without
-regenerating anything:
+`unicode-data/UCD/CaseFolding.txt` is missing. The `make` test targets (`test`, `test-cpp`,
+`ctest`, `coverage`, `test-elixir`, and the configurations built on them) depend on
+`make test-data`, which downloads any missing files without regenerating anything and needs no
+network access once they are present. To fetch them directly, run:
 
 ```sh
 ./utils/generate/scripts/download-test-data.sh
 ```
 
+On Windows, `Makefile.nmake` has the same `test-data` target, which runs
+`utils\generate\scripts\download-test-data.bat`. Keep the file lists of the two scripts in sync.
 `make generate` also downloads any missing inputs.
 
 ## Build commands
