@@ -202,6 +202,11 @@ if(MJB_BUILD_CLI AND NOT WIN32)
 
     mjb_add_shell_test("CLI Break JSON" break-json.cmake)
     mjb_add_shell_test("CLI Break" break-plain.cmake)
+
+    # Without character names the CLI prints a generic "Codepoint U+XXXX" name.
+    if(MJB_FEATURE_CHARACTER_NAMES)
+        mjb_add_shell_test("CLI Char Private Use" char-private-use.cmake)
+    endif()
 endif()
 
 set(MJB_CMAKE_TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run-embedded-test.cmake")

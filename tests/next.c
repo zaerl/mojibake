@@ -45,6 +45,14 @@ ATT_TEST(next) {
         MJB_STATUS_OK, "Next character");
     ATT_ASSERT(mjb_test_count, 5, "mjb_for_each_codepoint");
 
+    // U+E000 and U+F0000 are private-use characters
+    mjb_test_count = 0;
+    text = mjb_text_utf8("a\356\200\200b\363\260\200\200", 9);
+    ATT_ASSERT_STATUS(mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,
+                          next_character, &mjb_test_count, NULL),
+        MJB_STATUS_OK, "Next character with private use");
+    ATT_ASSERT(mjb_test_count, 4, "mjb_for_each_codepoint visits private-use characters");
+
     mjb_test_count = 0;
     text = mjb_text_utf8("A", 1);
     ATT_ASSERT_STATUS(mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,

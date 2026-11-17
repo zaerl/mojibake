@@ -9,6 +9,7 @@
 
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
+#include "utf.h"
 
 #if MJB_FEATURE_CHARACTER_NAMES
 static void mjb_codepoint_append_name(char *destination, size_t destination_size, size_t *index,
@@ -137,6 +138,43 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
     return true;
 }
 
+// Surrogates and private-use characters are listed in UnicodeData.txt as <..., First>/<..., Last>
+// ranges with no name, the same General_Category for the whole range, and default properties
+static bool mjb_codepoint_range_character(mjb_codepoint codepoint, mjb_character *character) {
+    mjb_category category;
+
+    if(mjb_codepoint_is_surrogate(codepoint)) {
+        category = MJB_CATEGORY_CS;
+    } else if((codepoint >= 0xE000 && codepoint <= 0xF8FF) || // Private Use Area
+        (codepoint >= 0xF0000 && codepoint <= 0xFFFFD) ||     // Supplementary PUA-A
+        (codepoint >= 0x100000 && codepoint <= 0x10FFFD)) {   // Supplementary PUA-B
+        category = MJB_CATEGORY_CO;
+    } else {
+        return false;
+    }
+
+#if MJB_FEATURE_CHARACTER_NAMES
+    character->name[0] = '\0';
+#else
+    mjb_codepoint_set_default_name(character->name, sizeof(character->name), codepoint);
+#endif
+
+    character->codepoint = codepoint;
+    character->category = category;
+    character->combining = MJB_CCC_NOT_REORDERED;
+    character->bidirectional = MJB_PR_BIDI_CLASS_L;
+    character->decomposition = MJB_DECOMPOSITION_NONE;
+    character->decimal = MJB_NUMBER_NOT_VALID;
+    character->digit = MJB_NUMBER_NOT_VALID;
+    character->numeric[0] = '\0';
+    character->mirrored = false;
+    character->uppercase = 0;
+    character->lowercase = 0;
+    character->titlecase = 0;
+
+    return true;
+}
+
 // Return the codepoint character
 MJB_EXPORT mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character *character) {
     if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
@@ -147,7 +185,8 @@ MJB_EXPORT mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character 
 
     if(!mjb_unicode_category_lookup(codepoint, &category)) {
         // Try CJK or ancient scripts characters before returning false
-        if(mjb_codepoint_cjk_th_character(codepoint, character)) {
+        if(mjb_codepoint_cjk_th_character(codepoint, character) ||
+            mjb_codepoint_range_character(codepoint, character)) {
             return MJB_STATUS_OK;
         }
 

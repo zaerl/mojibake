@@ -151,6 +151,17 @@ ATT_TEST(filter) {
     ATT_ASSERT_STATUS(mjb_filter(&text, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL result");
 
+    // U+E000 and U+F0000 are private-use characters and are kept while the spaces are collapsed
+    const char *private_use = "a\356\200\200 \363\260\200\200";
+    text = mjb_text_make("a\356\200\200  \363\260\200\200", 10, enc);
+    ATT_ASSERT_STATUS(mjb_filter(&text, MJB_MALFORMED_REPLACE, MJB_FILTER_COLLAPSE_SPACES, enc,
+                          &result, NULL),
+        MJB_STATUS_OK, "Filter keeps private use");
+    ATT_ASSERT(result.output_size, 9, "Filter keeps private use size");
+    ATT_ASSERT(result.owned, true, "Filter keeps private use owned");
+    ATT_ASSERT(memcmp(result.output, private_use, 9), 0, "Filter keeps private use output");
+    mjb_result_free(&result);
+
     text = mjb_text_make("", 0, enc);
     ATT_ASSERT_STATUS(mjb_filter(&text, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK,
         "Filter empty string");
