@@ -548,7 +548,10 @@ mjb_status mjb_codepoint_info(
 );
 ```
 
-Fill `character` with the Unicode Character Database record of a codepoint: name, category, combining class, bidirectional category, decomposition, numeric values, mirrored flag, and simple case mappings. When the library is compiled with `MJB_FEATURE_CHARACTER_NAMES=0` the name field is reported as `Codepoint U+XXXX`.
+Fill `character` with the Unicode Character Database record of a codepoint: name, category,
+combining class, bidirectional category, decomposition, numeric values, mirrored flag, and simple
+case mappings. When the library is compiled with `MJB_FEATURE_CHARACTER_NAMES=0` the name field is
+reported as `Codepoint U+XXXX`.
 
 - `codepoint` - The codepoint to check
 - `character` - The character to store the result
@@ -575,7 +578,10 @@ bool is_digit = character.category == MJB_CATEGORY_ND;
 printf("Decimal digit: %s, value: %d", is_digit ? "yes" : "no", character.decimal);
 ```
 
-See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_property_binary`](#mjb_codepoint_property_binary), [`mjb_codepoint_property_int`](#mjb_codepoint_property_int).
+See also: [`mjb_codepoint_block`](#mjb_codepoint_block),
+[`mjb_codepoint_script`](#mjb_codepoint_script),
+[`mjb_codepoint_property_binary`](#mjb_codepoint_property_binary),
+[`mjb_codepoint_property_int`](#mjb_codepoint_property_int).
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-38.html).
 
@@ -594,19 +600,25 @@ mjb_status mjb_normalize(
 );
 ```
 
-Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, `text->buffer` is returned as-is in `result->output` with `result->owned` set to false, without allocating. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Normalize a string to the requested Unicode normalization form. If the input is already normalized
+and no encoding conversion is needed, `text->buffer` is returned as-is in `result->output` with
+`result->owned` set to false, without allocating. Malformed subsequences follow `malformed_policy`,
+and `diagnostic` records the first one.
 
 - `text` - The text to normalize
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The string was normalized (or already normal)
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
@@ -632,7 +644,9 @@ printf("NFC: %.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_normalize_into`](#mjb_normalize_into), [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter`](#mjb_filter), [`mjb_filter_into`](#mjb_filter_into).
+See also: [`mjb_normalize_into`](#mjb_normalize_into),
+[`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter`](#mjb_filter),
+[`mjb_filter_into`](#mjb_filter_into).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-58.html).
 
@@ -650,18 +664,27 @@ mjb_status mjb_normalize_into(
 );
 ```
 
-Normalize a string using the same Unicode normalization forms and encoding rules as `mjb_normalize`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. NFD and NFKD write without allocation. NFC and NFKC may allocate temporary composition storage, including during a size query.
+Normalize a string using the same Unicode normalization forms and encoding rules as
+`mjb_normalize`. `output->encoding` selects the output encoding. Set `output->data` to NULL to
+query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on
+return it contains the required size when the buffer is too small, or the written size on success.
+Terminators are excluded from the byte count and are not written. If capacity is insufficient, or
+another error occurs, the output buffer may hold a partial prefix of the result, but nothing is
+written past its capacity. NFD and NFKD write without allocation. NFC and NFKC may allocate
+temporary composition storage, including during a size query.
 
 - `text` - The text to normalize
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the normalized string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
@@ -700,7 +723,9 @@ if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output
 printf("NFC payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
-See also: [`mjb_normalize`](#mjb_normalize), [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter_into`](#mjb_filter_into), [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into).
+See also: [`mjb_normalize`](#mjb_normalize),
+[`mjb_normalization_quick_check`](#mjb_normalization_quick_check),
+[`mjb_filter_into`](#mjb_filter_into), [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-58.html).
 
@@ -719,19 +744,30 @@ mjb_status mjb_filter(
 );
 ```
 
-`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. Every combining mark counts, in any block: general categories Mn, Mc, and Me. An emitted character that is neither a combining mark nor a Default_Ignorable_Code_Point, such as U+200D ZERO WIDTH JOINER, starts a new run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks. Some scripts, such as Biblical Hebrew and Quranic Arabic, can use more than four marks on one letter; define `MJB_FILTER_MAX_COMBINING_MARKS` at compile time to raise the default of 4. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`; `diagnostic` records the first one encountered.
+`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first
+`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. Every combining mark counts,
+in any block: general categories Mn, Mc, and Me. An emitted character that is neither a combining
+mark nor a Default_Ignorable_Code_Point, such as U+200D ZERO WIDTH JOINER, starts a new run. This
+is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks. Some
+scripts, such as Biblical Hebrew and Quranic Arabic, can use more than four marks on one letter;
+define `MJB_FILTER_MAX_COMBINING_MARKS` at compile time to raise the default of 4. Malformed
+subsequences are stopped, replaced, or skipped according to `malformed_policy`; `diagnostic`
+records the first one encountered.
 
 - `text` - The text to filter
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The filtered string was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
@@ -783,18 +819,30 @@ mjb_status mjb_filter_into(
 );
 ```
 
-Apply the same filters as `mjb_filter` without allocating the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run, counting every Mn, Mc, and Me mark and ignoring Default_Ignorable_Code_Point characters as `mjb_filter` does. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Apply the same filters as `mjb_filter` without allocating the final output buffer.
+`output->encoding` selects the output encoding. Set `output->data` to NULL to query the required
+size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains
+the required size when the buffer is too small, or the written size on success. Terminators are
+excluded from the byte count and are not written. If capacity is insufficient, or another error
+occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its
+capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary
+normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first
+`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run, counting every Mn, Mc, and
+Me mark and ignoring Default_Ignorable_Code_Point characters as `mjb_filter` does. Malformed
+subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `text` - The text to filter
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the filtered string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
@@ -847,22 +895,29 @@ mjb_status mjb_nfkc_casefold(
 );
 ```
 
-Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform
+performs compatibility folding, full default case folding, and removal of default-ignorable
+codepoints. It is intended for identifier comparison and is not locale-sensitive. Malformed
+subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `text` - The text to transform
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The transformed string was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
-- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize, or the requested output encoding cannot represent a result codepoint
+- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize, or the requested output encoding
+  cannot represent a result codepoint
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
@@ -881,7 +936,8 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into), [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into), [`mjb_normalize`](#mjb_normalize),
+[`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-45.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-38.html).
 
@@ -898,21 +954,31 @@ mjb_status mjb_nfkc_casefold_into(
 );
 ```
 
-Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
+Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. `output->encoding`
+selects the output encoding. Set `output->data` to NULL to query the required size. If
+`output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the
+required size when the buffer is too small, or the written size on success. Terminators are
+excluded from the byte count and are not written. If capacity is insufficient, or another error
+occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its
+capacity. The final output uses caller-provided storage, but the normalization and folding passes
+require temporary allocations, including during a size query.
 
 - `text` - The text to transform
 - `malformed_policy` - How malformed code-unit sequences are handled
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the transformed string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
-- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize, or the requested output encoding cannot represent a result codepoint
+- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize, or the requested output encoding
+  cannot represent a result codepoint
 - `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
 
@@ -943,7 +1009,8 @@ if(mjb_nfkc_casefold_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STAT
 printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
-See also: [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_normalize),
+[`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-45.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-38.html).
 
@@ -960,17 +1027,23 @@ mjb_status mjb_idna_to_ascii(
 );
 ```
 
-Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, label-length, and domain-length checks enabled. Non-ASCII labels are encoded with Punycode. A successful operational status can still set `info->errors`; an errored ToASCII result must not be used for DNS lookup. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, label-length, and
+domain-length checks enabled. Non-ASCII labels are encoded with Punycode. A successful operational
+status can still set `info->errors`; an errored ToASCII result must not be used for DNS lookup. If
+`MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The domain name to process
 - `output_encoding` - The output encoding of the ASCII domain name
 - `info` - The UTS #46 validation errors to store
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 
 **Returns**
 
 - `MJB_STATUS_OK` - Processing completed; inspect `info->errors` for validation failures
-- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `result` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `result` is NULL, or `text->buffer` is NULL
+  with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -996,7 +1069,9 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
+See also: [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into),
+[`mjb_idna_to_unicode`](#mjb_idna_to_unicode),
+[`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
 
 Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-36.html).
 
@@ -1012,16 +1087,24 @@ mjb_status mjb_idna_to_ascii_into(
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required byte count; otherwise `output->size` supplies its capacity, and on return it contains the required or written byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. `output->encoding` selects
+the output encoding. Set `output->data` to NULL to query the required byte count; otherwise
+`output->size` supplies its capacity, and on return it contains the required or written byte count.
+If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix
+of the result, but nothing is written past its capacity. Processing uses temporary allocations even
+during a size query. If `MJB_FEATURE_IDNA=0` the function always returns
+`MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The domain name to process
 - `info` - The UTS #46 validation errors to store
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the ASCII domain was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `output` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `output` is NULL, or `text->buffer` is NULL
+  with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -1060,7 +1143,8 @@ if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK ||
 printf("ASCII payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
-See also: [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
+See also: [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode),
+[`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
 
 Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-36.html).
 
@@ -1077,17 +1161,22 @@ mjb_status mjb_idna_to_unicode(
 );
 ```
 
-Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The function returns its best-effort converted string even when `info->errors` records a validation problem. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The function returns its
+best-effort converted string even when `info->errors` records a validation problem. If
+`MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The domain name to process
 - `output_encoding` - The output encoding of the Unicode domain name
 - `info` - The UTS #46 validation errors to store
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 
 **Returns**
 
 - `MJB_STATUS_OK` - Processing completed; inspect `info->errors` for validation failures
-- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `result` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `result` is NULL, or `text->buffer` is NULL
+  with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -1112,7 +1201,8 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
+See also: [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into),
+[`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
 
 Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-36.html).
 
@@ -1128,16 +1218,24 @@ mjb_status mjb_idna_to_unicode_into(
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required byte count; otherwise `output->size` supplies its capacity, and on return it contains the required or written byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. `output->encoding` selects
+the output encoding. Set `output->data` to NULL to query the required byte count; otherwise
+`output->size` supplies its capacity, and on return it contains the required or written byte count.
+If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix
+of the result, but nothing is written past its capacity. Processing uses temporary allocations even
+during a size query. If `MJB_FEATURE_IDNA=0` the function always returns
+`MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The domain name to process
 - `info` - The UTS #46 validation errors to store
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the Unicode domain was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `output` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `output` is NULL, or `text->buffer` is NULL
+  with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -1175,7 +1273,8 @@ if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK ||
 printf("Unicode payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
-See also: [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
+See also: [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii),
+[`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
 
 Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-36.html).
 
@@ -1191,7 +1290,8 @@ mjb_status mjb_normalization_quick_check(
 );
 ```
 
-Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
+Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string
+may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
 
 - `text` - The text to check
 - `form` - The normalization form to check
@@ -1200,8 +1300,10 @@ Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE`
 **Returns**
 
 - `MJB_STATUS_OK` - `quick_check` contains `MJB_QC_YES`, `MJB_QC_NO`, or `MJB_QC_MAYBE`
-- `MJB_STATUS_INVALID_ARGUMENT` - `quick_check` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_ENCODING` - The text encoding is invalid or a generic UTF-16/UTF-32 encoding has no byte-order information
+- `MJB_STATUS_INVALID_ARGUMENT` - `quick_check` or `text` is NULL, or `text->buffer` is NULL with a
+  non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The text encoding is invalid or a generic UTF-16/UTF-32 encoding
+  has no byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 
@@ -1234,7 +1336,12 @@ mjb_encoding mjb_detect_encoding(
 );
 ```
 
-`mjb_detect_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence. `MJB_NUL_TERMINATED` is not accepted because the encoding, and therefore the NUL code-unit width, is unknown.
+`mjb_detect_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus
+the resolved endian bit. Passing that detected value consumes the leading BOM as a signature.
+Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text.
+When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives
+UTF-32 precedence. `MJB_NUL_TERMINATED` is not accepted because the encoding, and therefore the NUL
+code-unit width, is unknown.
 
 - `buffer` - The string to check
 - `byte_length` - The explicit length of the string, in bytes
@@ -1262,7 +1369,8 @@ bool mjb_is_ascii(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from
+  an encoding-aware NUL code unit
 
 **Example**
 
@@ -1285,7 +1393,8 @@ bool mjb_is_utf8(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from
+  an encoding-aware NUL code unit
 
 **Example**
 
@@ -1308,7 +1417,8 @@ bool mjb_is_utf16(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from
+  an encoding-aware NUL code unit
 
 **Example**
 
@@ -1330,7 +1440,9 @@ mjb_status mjb_validate_encoding(
 );
 ```
 
-Validate the complete input without producing output. Empty input is well-formed. On malformed input, `diagnostic` identifies the first maximal ill-formed subsequence. Generic UTF-16 and UTF-32 require a byte-order mark.
+Validate the complete input without producing output. Empty input is well-formed. On malformed
+input, `diagnostic` identifies the first maximal ill-formed subsequence. Generic UTF-16 and UTF-32
+require a byte-order mark.
 
 - `text` - The text to validate
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -1339,7 +1451,8 @@ Validate the complete input without producing output. Empty input is well-formed
 
 - `MJB_STATUS_OK` - The complete input is well-formed
 - `MJB_STATUS_INVALID_ARGUMENT` - `text` is NULL, or `text->buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_ENCODING` - The encoding is unsupported, or generic UTF-16/UTF-32 has no byte-order mark
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is unsupported, or generic UTF-16/UTF-32 has no
+  byte-order mark
 - `MJB_STATUS_MALFORMED_INPUT` - The first malformed subsequence is described by `diagnostic`
 
 **Example**
@@ -1355,7 +1468,8 @@ if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
 }
 ```
 
-See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_is_utf8`](#mjb_is_utf8).
+See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_decode_previous`](#mjb_decode_previous),
+[`mjb_is_utf8`](#mjb_is_utf8).
 
 ## `mjb_nul_terminated_length`
 
@@ -1369,7 +1483,9 @@ mjb_status mjb_nul_terminated_length(
 );
 ```
 
-Scan for the terminator of the encoding: a zero byte for ASCII and UTF-8, a zero 16-bit code unit for UTF-16, and a zero 32-bit code unit for UTF-32. Code units are aligned to the start of `buffer`.
+Scan for the terminator of the encoding: a zero byte for ASCII and UTF-8, a zero 16-bit code unit
+for UTF-16, and a zero 32-bit code unit for UTF-32. Code units are aligned to the start of
+`buffer`.
 
 - `buffer` - The NUL-terminated string
 - `encoding` - The encoding of the string
@@ -1411,7 +1527,11 @@ mjb_status mjb_decode_next(
 );
 ```
 
-Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed input returns `MJB_STATUS_MALFORMED_INPUT`; `offset` still advances over the malformed subsequence so decoding can resume. `MJB_MALFORMED_REPLACE` returns U+FFFD, while `MJB_MALFORMED_SKIP` advances until a valid codepoint or end of input. A diagnostic is reported for replacement and skipping even when the function returns success.
+Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed input returns
+`MJB_STATUS_MALFORMED_INPUT`; `offset` still advances over the malformed subsequence so decoding
+can resume. `MJB_MALFORMED_REPLACE` returns U+FFFD, while `MJB_MALFORMED_SKIP` advances until a
+valid codepoint or end of input. A diagnostic is reported for replacement and skipping even when
+the function returns success.
 
 - `text` - The text to decode
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -1424,7 +1544,8 @@ Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed 
 - `MJB_STATUS_OK` - A codepoint was decoded
 - `MJB_STATUS_END_OF_INPUT` - No codepoint remains
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
-- `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid, or the text is `MJB_NUL_TERMINATED`
+- `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid, or the text is
+  `MJB_NUL_TERMINATED`
 - `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
 
 **Example**
@@ -1451,7 +1572,8 @@ if(status != MJB_STATUS_END_OF_INPUT) {
 printf("%zu codepoints in %zu bytes", count, offset);
 ```
 
-See also: [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
+See also: [`mjb_decode_previous`](#mjb_decode_previous),
+[`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
 
 ## `mjb_decode_previous`
 
@@ -1467,7 +1589,9 @@ mjb_status mjb_decode_previous(
 );
 ```
 
-Decode backward from `offset`, using the same malformed-input policies and diagnostic contract as `mjb_decode_next`. On success, `offset` is the first byte of the decoded codepoint. Start with the input byte length to iterate from the end.
+Decode backward from `offset`, using the same malformed-input policies and diagnostic contract as
+`mjb_decode_next`. On success, `offset` is the first byte of the decoded codepoint. Start with the
+input byte length to iterate from the end.
 
 - `text` - The text to decode
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -1480,7 +1604,8 @@ Decode backward from `offset`, using the same malformed-input policies and diagn
 - `MJB_STATUS_OK` - A codepoint was decoded
 - `MJB_STATUS_END_OF_INPUT` - No codepoint precedes `offset`
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
-- `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid, or the text is `MJB_NUL_TERMINATED`
+- `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid, or the text is
+  `MJB_NUL_TERMINATED`
 - `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
 
 **Example**
@@ -1501,7 +1626,8 @@ if(mjb_decode_previous(&input, MJB_MALFORMED_STOP, &offset, &codepoint,
 printf("Last codepoint: U+%04X at byte %zu", (unsigned)codepoint, offset);
 ```
 
-See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
+See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_validate_encoding`](#mjb_validate_encoding),
+[`mjb_codepoint_count`](#mjb_codepoint_count).
 
 ## `mjb_codepoint_count`
 
@@ -1516,7 +1642,9 @@ mjb_status mjb_codepoint_count(
 );
 ```
 
-Count the number of decoded Unicode codepoints in a string. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`. A replacement counts as one codepoint. On failure, `count` is set to zero.
+Count the number of decoded Unicode codepoints in a string. Malformed subsequences are stopped,
+replaced, or skipped according to `malformed_policy`. A replacement counts as one codepoint. On
+failure, `count` is set to zero.
 
 - `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -1526,7 +1654,8 @@ Count the number of decoded Unicode codepoints in a string. Malformed subsequenc
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` or `text` is NULL, `text->buffer` is NULL with a non-zero
+  size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The text encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
@@ -1554,7 +1683,8 @@ if(mjb_codepoint_count(&utf16le, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS
 printf("%zu UTF-16LE characters", count);
 ```
 
-See also: [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_word_count`](#mjb_word_count), [`mjb_sentence_count`](#mjb_sentence_count).
+See also: [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_word_count`](#mjb_word_count),
+[`mjb_sentence_count`](#mjb_sentence_count).
 
 ## `mjb_for_each_codepoint`
 
@@ -1570,7 +1700,10 @@ mjb_status mjb_for_each_codepoint(
 );
 ```
 
-Decode the string according to `malformed_policy` and call the callback for every resulting codepoint, with its position in the string and `context`. Use `context` to give the callback its own state, such as a counter or an output buffer, without global variables. The first malformed subsequence is reported in `diagnostic` even when it is replaced or skipped.
+Decode the string according to `malformed_policy` and call the callback for every resulting
+codepoint, with its position in the string and `context`. Use `context` to give the callback its
+own state, such as a counter or an output buffer, without global variables. The first malformed
+subsequence is reported in `diagnostic` even when it is replaced or skipped.
 
 - `text` - The text to check
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -1611,7 +1744,8 @@ mjb_status mjb_codepoint_property_binary(
 );
 ```
 
-Return `true` when the codepoint has the binary property and `false` when it does not. Passing an enumerated property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`.
+Return `true` when the codepoint has the binary property and `false` when it does not. Passing an
+enumerated property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`.
 
 - `codepoint` - The codepoint to check
 - `property` - The binary property to query
@@ -1647,7 +1781,8 @@ mjb_status mjb_codepoint_property_int(
 );
 ```
 
-Passing a binary property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`. `MJB_STATUS_NOT_FOUND` means that the codepoint has no stored value for the requested property.
+Passing a binary property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`.
+`MJB_STATUS_NOT_FOUND` means that the codepoint has no stored value for the requested property.
 
 - `codepoint` - The codepoint to check
 - `property` - The enumerated or integer property to query
@@ -1681,7 +1816,8 @@ mjb_status mjb_codepoint_numeric_value(
 );
 ```
 
-Return the numeric value of a codepoint, if any. If the codepoint has no numeric value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).
+Return the numeric value of a codepoint, if any. If the codepoint has no numeric value,
+`value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).
 
 - `codepoint` - The codepoint to check
 - `value` - The numeric value to store the result
@@ -1777,7 +1913,9 @@ mjb_status mjb_codepoint_script_extensions(
 );
 ```
 
-Return the explicit Script_Extensions set, or the ordinary Script value when the codepoint has no explicit Script_Extensions entry. Call first with `scripts` set to NULL to obtain the required count.
+Return the explicit Script_Extensions set, or the ordinary Script value when the codepoint has no
+explicit Script_Extensions entry. Call first with `scripts` set to NULL to obtain the required
+count.
 
 - `codepoint` - The codepoint to check
 - `scripts` - The caller-provided script buffer, or NULL to query the required count
@@ -1849,18 +1987,26 @@ mjb_status mjb_convert_encoding(
 );
 ```
 
-Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified. Malformed source subsequences are stopped, replaced, or skipped according to `malformed_policy`.
+Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic
+UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve
+byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32
+without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not
+specified. Malformed source subsequences are stopped, replaced, or skipped according to
+`malformed_policy`.
 
 - `text` - The text to convert
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The string was converted
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent an input codepoint
@@ -1883,7 +2029,8 @@ printf("UTF-16LE bytes: %zu", result.output_size);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_convert_encoding_into`](#mjb_convert_encoding_into), [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
+See also: [`mjb_convert_encoding_into`](#mjb_convert_encoding_into),
+[`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
 ## `mjb_convert_encoding_into`
 
@@ -1898,17 +2045,25 @@ mjb_status mjb_convert_encoding_into(
 );
 ```
 
-Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity.
+Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without
+allocating memory. `output->encoding` selects the output encoding. Set `output->data` to NULL to
+query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on
+return it contains the required size when the buffer is too small, or the written size on success.
+The size is the encoded payload byte count: terminators are excluded, and this function does not
+write a terminator. If capacity is insufficient, or another error occurs, the output buffer may
+hold a partial prefix of the result, but nothing is written past its capacity.
 
 - `text` - The text to convert
 - `malformed_policy` - How malformed code-unit sequences are handled
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the string was converted
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent an input codepoint
@@ -1942,7 +2097,8 @@ if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_S
 printf("UTF-16LE payload bytes (no terminator): %zu", output.size);
 ```
 
-See also: [`mjb_convert_encoding`](#mjb_convert_encoding), [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
+See also: [`mjb_convert_encoding`](#mjb_convert_encoding),
+[`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
 ## `mjb_caseless_match`
 
@@ -1960,7 +2116,15 @@ mjb_status mjb_caseless_match(
 );
 ```
 
-Compare two strings for case-insensitive equality using Unicode full default case folding. Canonical mode implements D145 and is recommended for ordinary text. Unnormalized mode implements D144 without normalization. Compatibility mode implements the iterated folding and compatibility normalization required by D146. Identifier mode implements D147 by applying NFD before `mjb_nfkc_casefold`; it removes default-ignorable codepoints but does not validate identifier syntax. Malformed subsequences follow `malformed_policy`. `first_diagnostic` and `second_diagnostic` each record the first malformed subsequence of their own text, with offsets into that text; when `first` stops on malformed input, `second` is not examined and `second_diagnostic` stays clear.
+Compare two strings for case-insensitive equality using Unicode full default case folding.
+Canonical mode implements D145 and is recommended for ordinary text. Unnormalized mode implements
+D144 without normalization. Compatibility mode implements the iterated folding and compatibility
+normalization required by D146. Identifier mode implements D147 by applying NFD before
+`mjb_nfkc_casefold`; it removes default-ignorable codepoints but does not validate identifier
+syntax. Malformed subsequences follow `malformed_policy`. `first_diagnostic` and
+`second_diagnostic` each record the first malformed subsequence of their own text, with offsets
+into that text; when `first` stops on malformed input, `second` is not examined and
+`second_diagnostic` stays clear.
 
 - `first` - The first text to compare
 - `second` - The second text to compare
@@ -1973,7 +2137,8 @@ Compare two strings for case-insensitive equality using Unicode full default cas
 **Returns**
 
 - `MJB_STATUS_OK` - `matches` contains the comparison result
-- `MJB_STATUS_INVALID_ARGUMENT` - `matches`, `first`, or `second` is NULL, a text buffer is NULL with a non-zero size, `mode` is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `matches`, `first`, or `second` is NULL, a text buffer is NULL
+  with a non-zero size, `mode` is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
@@ -1996,7 +2161,9 @@ if(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL,
 printf("Canonical caseless match: %s", matches ? "yes" : "no");
 ```
 
-See also: [`mjb_map_case`](#mjb_map_case), [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_normalize), [`mjb_collation_compare`](#mjb_collation_compare), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_map_case`](#mjb_map_case), [`mjb_nfkc_casefold`](#mjb_nfkc_casefold),
+[`mjb_normalize`](#mjb_normalize), [`mjb_collation_compare`](#mjb_collation_compare),
+[`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13.5: Default Caseless Matching](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-45.html).
 
@@ -2017,7 +2184,18 @@ mjb_status mjb_collation_compare(
 );
 ```
 
-Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics. Primary strength compares base-character weights. Secondary strength also compares accents while ignoring tertiary case differences. Tertiary strength adds case and variant differences. Quaternary strength also compares variable elements moved to level 4 by `MJB_COLLATION_SHIFTED`; with `MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary strength. Collation equality at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when case-insensitive equality is the intended operation. Malformed subsequences follow `malformed_policy`. `first_diagnostic` and `second_diagnostic` each record the first malformed subsequence of their own text, with offsets into that text; when `first` stops on malformed input, `second` is not read and `second_diagnostic` stays clear. See [Unicode collation](#unicode-collation) for the comparison process and configuration guidance. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Compare two strings using the Unicode Collation Algorithm and the default collation element table
+(DUCET), with `strcmp`-style semantics. Primary strength compares base-character weights. Secondary
+strength also compares accents while ignoring tertiary case differences. Tertiary strength adds
+case and variant differences. Quaternary strength also compares variable elements moved to level 4
+by `MJB_COLLATION_SHIFTED`; with `MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary
+strength. Collation equality at a selected strength is not Unicode caseless matching; use
+`mjb_caseless_match` when case-insensitive equality is the intended operation. Malformed
+subsequences follow `malformed_policy`. `first_diagnostic` and `second_diagnostic` each record the
+first malformed subsequence of their own text, with offsets into that text; when `first` stops on
+malformed input, `second` is not read and `second_diagnostic` stays clear. See [Unicode
+collation](#unicode-collation) for the comparison process and configuration guidance. If
+`MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `first` - The first text to compare
 - `second` - The second text to compare
@@ -2031,7 +2209,8 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 **Returns**
 
 - `MJB_STATUS_OK` - `order` is negative, zero, or positive according to the collation order
-- `MJB_STATUS_INVALID_ARGUMENT` - `order`, `first`, or `second` is NULL, a text buffer is NULL with a non-zero size, the malformed policy is invalid, or an option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `order`, `first`, or `second` is NULL, a text buffer is NULL with
+  a non-zero size, the malformed policy is invalid, or an option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
@@ -2054,7 +2233,8 @@ if(mjb_collation_compare(&apple, &banana, MJB_MALFORMED_STOP, MJB_COLLATION_NON_
 printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
 ```
 
-See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_key_into`](#mjb_collation_key_into), [`mjb_caseless_match`](#mjb_caseless_match).
+See also: [`mjb_collation_key`](#mjb_collation_key),
+[`mjb_collation_key_into`](#mjb_collation_key_into), [`mjb_caseless_match`](#mjb_caseless_match).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-55.html).
 
@@ -2073,19 +2253,28 @@ mjb_status mjb_collation_key(
 );
 ```
 
-Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Generate a binary sort key for a string. Sort keys of different strings can be compared with
+`memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable
+weighting and strength. Useful when the same strings are compared many times, such as sorting or
+database indexing. Empty input and non-empty input with no effective weights at the selected
+strength both produce a zero-length key. Malformed subsequences follow `malformed_policy`, and
+`diagnostic` records the first one. If `MJB_FEATURE_COLLATION=0` the function always returns
+`MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The text to generate the sort key for
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
-- `result` - The pointer to store the binary sort key. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the binary sort key. If `result->owned` is true, `result->output`
+  is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into
+  the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The sort key was generated
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, or a collation option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, the malformed policy is invalid, or a collation option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The sort key size would overflow
@@ -2108,7 +2297,8 @@ printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
 mjb_result_free(&key);
 ```
 
-See also: [`mjb_collation_key_into`](#mjb_collation_key_into), [`mjb_collation_compare`](#mjb_collation_compare).
+See also: [`mjb_collation_key_into`](#mjb_collation_key_into),
+[`mjb_collation_compare`](#mjb_collation_compare).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-55.html).
 
@@ -2127,19 +2317,30 @@ mjb_status mjb_collation_key_into(
 );
 ```
 
-Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output->data` to NULL to query the required byte count. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: `output->encoding` is ignored, and no terminator is included or written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the key, but nothing is written past its capacity. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer.
+Set `output->data` to NULL to query the required byte count. If `output->data` is non-NULL,
+`output->size` supplies its capacity; on return it contains the required size when the buffer is
+too small, or the written size on success. A collation key is binary: `output->encoding` is
+ignored, and no terminator is included or written. If capacity is insufficient, or another error
+occurs, the output buffer may hold a partial prefix of the key, but nothing is written past its
+capacity. Collation processing still uses temporary allocations, including during a size query.
+Empty input and non-empty input with no effective weights at the selected strength both require
+zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns
+`MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The text to generate the sort key for
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
-- `output` - The output storage and its capacity. The key is binary: `output->encoding` is ignored. The caller retains ownership of `output->data`
+- `output` - The output storage and its capacity. The key is binary: `output->encoding` is ignored.
+  The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the binary sort key was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, or a collation option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, the malformed policy is invalid, or a collation option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required key size would overflow
@@ -2177,7 +2378,8 @@ if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABL
 printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");
 ```
 
-See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_compare`](#mjb_collation_compare).
+See also: [`mjb_collation_key`](#mjb_collation_key),
+[`mjb_collation_compare`](#mjb_collation_compare).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-55.html).
 
@@ -2197,20 +2399,34 @@ mjb_status mjb_map_case(
 );
 ```
 
-Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. `locale` selects the language-sensitive rules of SpecialCasing.txt for this call only; there is no global locale, so concurrent calls with different locales do not interfere. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping. `MJB_LOCALE_NOT_SET` and every other valid locale use the default mappings. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings
+are applied, including special casing and conditional mappings, so the output may have a different
+length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each
+word segment is titlecased, and subsequent characters in that segment are lowercased. `locale`
+selects the language-sensitive rules of SpecialCasing.txt for this call only; there is no global
+locale, so concurrent calls with different locales do not interfere. `MJB_LOCALE_TR` and
+`MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings.
+`MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default
+non-Turkic mapping. `MJB_LOCALE_NOT_SET` and every other valid locale use the default mappings.
+Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `text` - The text to change case
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
-- `locale` - The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the default mappings
+- `locale` - The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the default
+  mappings
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The case conversion succeeded
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, `type` is not a valid case type, or `locale` is not a valid `mjb_locale` value
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, the malformed policy is invalid, `type` is not a valid case type, or `locale` is
+  not a valid `mjb_locale` value
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
@@ -2243,7 +2459,8 @@ printf("Turkish upper: %.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_map_case_into`](#mjb_map_case_into), [`mjb_locale_parse`](#mjb_locale_parse), [`mjb_caseless_match`](#mjb_caseless_match).
+See also: [`mjb_map_case_into`](#mjb_map_case_into), [`mjb_locale_parse`](#mjb_locale_parse),
+[`mjb_caseless_match`](#mjb_caseless_match).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
 
@@ -2262,19 +2479,29 @@ mjb_status mjb_map_case_into(
 );
 ```
 
-Apply the same full, special, conditional, titlecase, locale-sensitive, and case folding mappings as `mjb_map_case` without allocating memory. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity.
+Apply the same full, special, conditional, titlecase, locale-sensitive, and case folding mappings
+as `mjb_map_case` without allocating memory. `output->encoding` selects the output encoding. Set
+`output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size`
+supplies its capacity; on return it contains the required size when the buffer is too small, or the
+written size on success. Terminators are excluded from the byte count and are not written. If
+capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of
+the result, but nothing is written past its capacity.
 
 - `text` - The text to change case
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
-- `locale` - The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the default mappings
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `locale` - The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the default
+  mappings
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the case-mapped string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, `type` is invalid, or `locale` is not a valid `mjb_locale` value
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a
+  non-zero size, the malformed policy is invalid, `type` is invalid, or `locale` is not a valid
+  `mjb_locale` value
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
@@ -2559,7 +2786,12 @@ mjb_break_type mjb_line_break_next(
 );
 ```
 
-Iterate the line break opportunities of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it.
+Iterate the line break opportunities of a string. Start with `state.index` set to 0 and call
+repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type
+of one position, from the boundary after the first codepoint to the end of the text, and stores its
+byte offset in `state.position`, so each segment runs from one break position to the next. A
+malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end
+of the text ends the iteration at the position before it.
 
 - `text` - The text to check
 - `state` - The state to store the result
@@ -2576,7 +2808,9 @@ mjb_break_type type = mjb_line_break_next(&input, &state);
 printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
 ```
 
-See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next).
+See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next),
+[`mjb_word_break_next`](#mjb_word_break_next),
+[`mjb_sentence_break_next`](#mjb_sentence_break_next).
 
 Specifications: [UAX #14: Unicode Line Breaking Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr14/tr14-57.html).
 
@@ -2591,7 +2825,12 @@ mjb_break_type mjb_word_break_next(
 );
 ```
 
-Iterate the word boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it.
+Iterate the word boundaries of a string. Start with `state.index` set to 0 and call repeatedly with
+the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position,
+from the boundary after the first codepoint to the end of the text, and stores its byte offset in
+`state.position`, so each segment runs from one break position to the next. A malformed subsequence
+counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the
+iteration at the position before it.
 
 - `text` - The text to check
 - `state` - The state to store the result
@@ -2612,7 +2851,9 @@ while(mjb_word_break_next(&input, &state) != MJB_BT_NOT_SET) {
 printf("Word-break positions: %zu", boundaries);
 ```
 
-See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_word_prefix_length`](#mjb_word_prefix_length).
+See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next),
+[`mjb_sentence_break_next`](#mjb_sentence_break_next),
+[`mjb_word_prefix_length`](#mjb_word_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2627,7 +2868,12 @@ mjb_break_type mjb_sentence_break_next(
 );
 ```
 
-Iterate the sentence boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it.
+Iterate the sentence boundaries of a string. Start with `state.index` set to 0 and call repeatedly
+with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one
+position, from the boundary after the first codepoint to the end of the text, and stores its byte
+offset in `state.position`, so each segment runs from one break position to the next. A malformed
+subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the
+text ends the iteration at the position before it.
 
 - `text` - The text to check
 - `state` - The state to store the result
@@ -2648,7 +2894,8 @@ while(mjb_sentence_break_next(&input, &state) != MJB_BT_NOT_SET) {
 printf("Sentence-break positions: %zu", boundaries);
 ```
 
-See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_word_break_next`](#mjb_word_break_next).
+See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next),
+[`mjb_word_break_next`](#mjb_word_break_next).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2665,7 +2912,10 @@ mjb_status mjb_sentence_count(
 );
 ```
 
-Count the sentence segments produced by the default Unicode sentence-boundary rules. The default rules carry no abbreviation list, so text such as `Dr. Smith` counts as two sentences. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
+Count the sentence segments produced by the default Unicode sentence-boundary rules. The default
+rules carry no abbreviation list, so text such as `Dr. Smith` counts as two sentences. Malformed
+subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count`
+is set to zero.
 
 - `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -2675,7 +2925,8 @@ Count the sentence segments produced by the default Unicode sentence-boundary ru
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is
+  invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
@@ -2693,7 +2944,8 @@ if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 printf("Sentences: %zu", count);
 ```
 
-See also: [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_word_count`](#mjb_word_count).
+See also: [`mjb_sentence_break_next`](#mjb_sentence_break_next),
+[`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_word_count`](#mjb_word_count).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2708,7 +2960,12 @@ mjb_break_type mjb_grapheme_break_next(
 );
 ```
 
-Iterate the grapheme cluster (user-perceived character) boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it.
+Iterate the grapheme cluster (user-perceived character) boundaries of a string. Start with
+`state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`.
+Each call returns the break type of one position, from the boundary after the first codepoint to
+the end of the text, and stores its byte offset in `state.position`, so each segment runs from one
+break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an
+incomplete subsequence at the end of the text ends the iteration at the position before it.
 
 - `text` - The text to check
 - `state` - The state to store the result
@@ -2729,7 +2986,10 @@ while(mjb_grapheme_break_next(&input, &state) != MJB_BT_NOT_SET) {
 printf("Codepoints examined: %zu", codepoints);
 ```
 
-See also: [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_line_break_next`](#mjb_line_break_next), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
+See also: [`mjb_word_break_next`](#mjb_word_break_next),
+[`mjb_sentence_break_next`](#mjb_sentence_break_next),
+[`mjb_line_break_next`](#mjb_line_break_next),
+[`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2770,7 +3030,9 @@ mjb_status mjb_grapheme_count(
 );
 ```
 
-Count user-perceived characters: the number of extended grapheme cluster segments in the string. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
+Count user-perceived characters: the number of extended grapheme cluster segments in the string.
+Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On
+failure, `count` is set to zero.
 
 - `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -2780,7 +3042,8 @@ Count user-perceived characters: the number of extended grapheme cluster segment
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is
+  invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
@@ -2798,7 +3061,8 @@ if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 printf("Grapheme clusters: %zu", count);
 ```
 
-See also: [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length), [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_terminal_width`](#mjb_terminal_width).
+See also: [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length),
+[`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_terminal_width`](#mjb_terminal_width).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2814,7 +3078,9 @@ size_t mjb_grapheme_prefix_length_for_width(
 );
 ```
 
-Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed the budget or cannot be measured as printable, single-line terminal text.
+Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell policy as
+`mjb_terminal_width`. The returned prefix stops before a cluster that would exceed the budget or
+cannot be measured as printable, single-line terminal text.
 
 - `text` - The text to check
 - `profile` - The terminal-width profile
@@ -2867,7 +3133,15 @@ mjb_status mjb_word_count(
 );
 ```
 
-Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_word_prefix_length`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
+Count the words in a string: the word-break segments that contain at least one alphabetic or
+numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!`
+counts as two words. Hyphenated compounds count each part, matching the default Unicode
+word-boundary rules. Unlike `mjb_word_prefix_length`, whose `max_segments` counts every raw
+segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other
+implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates
+one word per character: Mojibake does not use frequency dictionaries to keep the size of the
+library small. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first
+one. On failure, `count` is set to zero.
 
 - `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -2877,7 +3151,8 @@ Count the words in a string: the word-break segments that contain at least one a
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is
+  invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
@@ -2895,7 +3170,9 @@ if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
 printf("Words: %zu", count);
 ```
 
-See also: [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_word_prefix_length`](#mjb_word_prefix_length), [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_sentence_count`](#mjb_sentence_count).
+See also: [`mjb_word_break_next`](#mjb_word_break_next),
+[`mjb_word_prefix_length`](#mjb_word_prefix_length), [`mjb_grapheme_count`](#mjb_grapheme_count),
+[`mjb_sentence_count`](#mjb_sentence_count).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2911,7 +3188,9 @@ size_t mjb_word_prefix_length_for_width(
 );
 ```
 
-Truncate only at word-break boundaries, using the same terminal-cell policy as `mjb_terminal_width`. The returned prefix stops before a segment that would exceed the budget or cannot be measured as printable, single-line terminal text.
+Truncate only at word-break boundaries, using the same terminal-cell policy as
+`mjb_terminal_width`. The returned prefix stops before a segment that would exceed the budget or
+cannot be measured as printable, single-line terminal text.
 
 - `text` - The text to check
 - `profile` - The terminal-width profile
@@ -2939,16 +3218,20 @@ mjb_status mjb_bidi_resolve(
 );
 ```
 
-Resolve the embedding levels of a paragraph following the Unicode Bidirectional Algorithm. The resolved paragraph can then be split into lines and reordered visually with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.
+Resolve the embedding levels of a paragraph following the Unicode Bidirectional Algorithm. The
+resolved paragraph can then be split into lines and reordered visually with `mjb_bidi_reorder_line`
+and `mjb_bidi_line_runs`.
 
 - `text` - The text to resolve
 - `direction` - The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
-- `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_paragraph_free()`
+- `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and
+  must be freed with `mjb_bidi_paragraph_free()`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The paragraph was resolved
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, or `text->buffer` is NULL with a
+  non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - The paragraph size would overflow
@@ -2969,7 +3252,8 @@ printf("Paragraph codepoints: %zu", paragraph.count);
 mjb_bidi_paragraph_free(&paragraph);
 ```
 
-See also: [`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
+See also: [`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free),
+[`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-52.html).
 
@@ -2986,12 +3270,16 @@ mjb_status mjb_bidi_reorder_line(
 );
 ```
 
-The levels stored in the paragraph already have rule L1 applied as if the whole paragraph were one line. For this line, whitespace and isolate formatting characters at its end are also reset to the paragraph level (L1) on a private copy of the levels before the L2 reversal; the paragraph itself is not modified.
+The levels stored in the paragraph already have rule L1 applied as if the whole paragraph were one
+line. For this line, whitespace and isolate formatting characters at its end are also reset to the
+paragraph level (L1) on a private copy of the levels before the L2 reversal; the paragraph itself
+is not modified.
 
 - `paragraph` - The resolved paragraph
 - `line_start` - Start index into paragraph->chars
 - `line_end` - End index (exclusive) into paragraph->chars
-- `visual_order` - Caller-allocated array of size (`line_end` - `line_start`). Caller-allocated; the library does not retain or free it
+- `visual_order` - Caller-allocated array of size (`line_end` - `line_start`). Caller-allocated;
+  the library does not retain or free it
 
 **Example**
 
@@ -3029,7 +3317,9 @@ mjb_status mjb_bidi_line_runs(
 );
 ```
 
-Run levels use the same line levels as `mjb_bidi_reorder_line`: `visual_order` must be a permutation of one line, and whitespace and isolate formatting characters at the end of that line report the paragraph level (rule L1) even though the paragraph stores their paragraph-wide level.
+Run levels use the same line levels as `mjb_bidi_reorder_line`: `visual_order` must be a
+permutation of one line, and whitespace and isolate formatting characters at the end of that line
+report the paragraph level (rule L1) even though the paragraph stores their paragraph-wide level.
 
 - `paragraph` - The resolved paragraph
 - `visual_order` - Visual order array from `mjb_bidi_reorder_line`
@@ -3040,7 +3330,8 @@ Run levels use the same line levels as `mjb_bidi_reorder_line`: `visual_order` m
 **Returns**
 
 - `MJB_STATUS_OK` - The runs were counted or written
-- `MJB_STATUS_INVALID_ARGUMENT` - `paragraph` or `run_count` is NULL, `visual_order` is NULL with a non-zero `count`, or `visual_order` holds an index outside the paragraph
+- `MJB_STATUS_INVALID_ARGUMENT` - `paragraph` or `run_count` is NULL, `visual_order` is NULL with a
+  non-zero `count`, or `visual_order` holds an index outside the paragraph
 
 **Example**
 
@@ -3062,7 +3353,8 @@ printf("Visual runs: %zu", run_count);
 mjb_bidi_paragraph_free(&paragraph);
 ```
 
-See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line).
+See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve),
+[`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-52.html).
 
@@ -3248,7 +3540,9 @@ bool mjb_is_identifier(
 );
 ```
 
-Validate a string as a Unicode identifier: the first character must be a valid identifier start and the following ones valid identifier continuations, using ID_Start/ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.
+Validate a string as a Unicode identifier: the first character must be a valid identifier start and
+the following ones valid identifier continuations, using ID_Start/ID_Continue for the DEFAULT
+profile or XID_Start/XID_Continue for the NFKC profile.
 
 - `text` - The text to validate
 - `profile` - The identifier profile (DEFAULT or NFKC)
@@ -3264,7 +3558,10 @@ bool valid = mjb_is_identifier(&identifier, MJB_IDENTIFIER_NFKC);
 printf("Valid identifier: %s", valid ? "yes" : "no");
 ```
 
-See also: [`mjb_codepoint_is_id_start`](#mjb_codepoint_is_id_start), [`mjb_codepoint_is_id_continue`](#mjb_codepoint_is_id_continue), [`mjb_codepoint_is_xid_start`](#mjb_codepoint_is_xid_start), [`mjb_codepoint_is_xid_continue`](#mjb_codepoint_is_xid_continue).
+See also: [`mjb_codepoint_is_id_start`](#mjb_codepoint_is_id_start),
+[`mjb_codepoint_is_id_continue`](#mjb_codepoint_is_id_continue),
+[`mjb_codepoint_is_xid_start`](#mjb_codepoint_is_xid_start),
+[`mjb_codepoint_is_xid_continue`](#mjb_codepoint_is_xid_continue).
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-45.html).
 
@@ -3281,7 +3578,12 @@ mjb_status mjb_resolved_script_set(
 );
 ```
 
-Intersect the augmented Script_Extensions sets of every codepoint as specified by UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` to NULL to query the required count. A mixed-script string returns EMPTY with a zero count; an empty string or a string containing only Common or Inherited characters returns ALL with a zero count. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Intersect the augmented Script_Extensions sets of every codepoint as specified by UTS #39. Common
+and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and Bopomofo are augmented with the
+Hanb, Jpan, and Kore writing-system values. Set `scripts` to NULL to query the required count. A
+mixed-script string returns EMPTY with a zero count; an empty string or a string containing only
+Common or Inherited characters returns ALL with a zero count. If `MJB_FEATURE_SECURITY=0` the
+function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The text to analyze
 - `scripts` - The caller-provided script buffer, or NULL to query the required count
@@ -3290,9 +3592,12 @@ Intersect the augmented Script_Extensions sets of every codepoint as specified b
 
 **Returns**
 
-- `MJB_STATUS_OK` - The required count and set kind were returned, or the resolved scripts were written
-- `MJB_STATUS_INVALID_ARGUMENT` - `count`, `kind`, or `text` is NULL, or `text->buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks required byte-order information
+- `MJB_STATUS_OK` - The required count and set kind were returned, or the resolved scripts were
+  written
+- `MJB_STATUS_INVALID_ARGUMENT` - `count`, `kind`, or `text` is NULL, or `text->buffer` is NULL
+  with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks required byte-order
+  information
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The script buffer capacity is smaller than the required count
 - `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_SECURITY=0`
@@ -3315,7 +3620,9 @@ bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == M
 printf("Japanese writing system: %s", japanese ? "yes" : "no");
 ```
 
-See also: [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions), [`mjb_is_identifier`](#mjb_is_identifier), [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_match`](#mjb_confusable_match).
+See also: [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions),
+[`mjb_is_identifier`](#mjb_is_identifier), [`mjb_confusable_skeleton`](#mjb_confusable_skeleton),
+[`mjb_confusable_match`](#mjb_confusable_match).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-34.html).
 
@@ -3354,16 +3661,22 @@ mjb_status mjb_confusable_skeleton(
 );
 ```
 
-Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through
+L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply
+NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly. If
+`MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The text to transform
 - `output_encoding` - The output encoding of the skeleton
-- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is
+  library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the
+  input, which must outlive the result
 
 **Returns**
 
 - `MJB_STATUS_OK` - The confusable skeleton was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, or `text->buffer` is NULL with a
+  non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_UNSUPPORTED` - The output encoding cannot represent a skeleton codepoint
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
@@ -3386,7 +3699,8 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into), [`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into),
+[`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-34.html).
 
@@ -3401,15 +3715,25 @@ mjb_status mjb_confusable_skeleton_into(
 );
 ```
 
-Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating
+the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL
+to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on
+return it contains the required size when the buffer is too small, or the written size on success.
+Terminators are excluded and are not written. If capacity is insufficient, or another error occurs,
+the output buffer may hold a partial prefix of the result, but nothing is written past its
+capacity. Bidirectional resolution, normalization, and skeleton mapping still require temporary
+allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns
+`MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `text` - The text to transform
-- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of
+  `output->data`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the skeleton was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, or `text->buffer` is NULL with a
+  non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The output encoding cannot represent a skeleton codepoint
@@ -3446,7 +3770,8 @@ if(mjb_confusable_skeleton_into(&input, &output) != MJB_STATUS_OK) {
 printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
-See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton),
+[`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-34.html).
 
@@ -3465,7 +3790,12 @@ mjb_status mjb_confusable_match(
 );
 ```
 
-Compute the confusable skeleton of both strings and store true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`. Malformed subsequences follow `malformed_policy`. `first_diagnostic` and `second_diagnostic` each record the first malformed subsequence of their own text, with offsets into that text; when `first` stops on malformed input, `second` is not examined and `second_diagnostic` stays clear.
+Compute the confusable skeleton of both strings and store true when the skeletons are equal,
+meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о. If
+`MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`. Malformed
+subsequences follow `malformed_policy`. `first_diagnostic` and `second_diagnostic` each record the
+first malformed subsequence of their own text, with offsets into that text; when `first` stops on
+malformed input, `second` is not examined and `second_diagnostic` stays clear.
 
 - `first` - The first text
 - `second` - The second text
@@ -3477,7 +3807,8 @@ Compute the confusable skeleton of both strings and store true when the skeleton
 **Returns**
 
 - `MJB_STATUS_OK` - `confusable` contains the comparison result
-- `MJB_STATUS_INVALID_ARGUMENT` - `confusable`, `first`, or `second` is NULL, a text buffer is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `confusable`, `first`, or `second` is NULL, a text buffer is NULL
+  with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
@@ -3500,7 +3831,9 @@ if(mjb_confusable_match(&latin, &mixed, MJB_MALFORMED_STOP, &confusable, NULL,
 printf("Visually confusable: %s", confusable ? "yes" : "no");
 ```
 
-See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton),
+[`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into),
+[`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-34.html).
 
@@ -3531,7 +3864,8 @@ if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
 printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
 ```
 
-See also: [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
+See also: [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info),
+[`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-31.html).
 
@@ -3768,7 +4102,8 @@ if(mjb_emoji_sequence_info(&flag, &emoji) != MJB_STATUS_OK) {
 printf("Sequence codepoints: %zu", emoji.codepoint_count);
 ```
 
-See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
+See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence),
+[`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-31.html).
 
@@ -3795,7 +4130,8 @@ bool listed = mjb_is_emoji_sequence(&keycap);
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");
 ```
 
-See also: [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji), [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info).
+See also: [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji),
+[`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-31.html).
 
@@ -3822,7 +4158,8 @@ bool rgi = mjb_is_rgi_emoji(&flag);
 printf("RGI emoji: %s", rgi ? "yes" : "no");
 ```
 
-See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence), [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info).
+See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence),
+[`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-31.html).
 
@@ -3866,10 +4203,12 @@ mjb_status mjb_hangul_syllable_decompose(
 );
 ```
 
-Apply the arithmetic Hangul syllable decomposition of Unicode Section 3.12, the inverse of `mjb_hangul_syllable_compose`.
+Apply the arithmetic Hangul syllable decomposition of Unicode Section 3.12, the inverse of
+`mjb_hangul_syllable_compose`.
 
 - `codepoint` - The codepoint to check
-- `codepoints` - Three codepoints to store the leading, vowel, and trailing jamo; the trailing jamo is 0 when the syllable has none
+- `codepoints` - Three codepoints to store the leading, vowel, and trailing jamo; the trailing jamo
+  is 0 when the syllable has none
 
 **Returns**
 
@@ -3890,7 +4229,8 @@ if(mjb_hangul_syllable_decompose(0xAC01, decomposition) != MJB_STATUS_OK) {
 printf("Decomposition starts with: U+%04X", decomposition[0]);
 ```
 
-See also: [`mjb_hangul_syllable_compose`](#mjb_hangul_syllable_compose), [`mjb_hangul_syllable_name`](#mjb_hangul_syllable_name).
+See also: [`mjb_hangul_syllable_compose`](#mjb_hangul_syllable_compose),
+[`mjb_hangul_syllable_name`](#mjb_hangul_syllable_name).
 
 ## `mjb_hangul_syllable_compose`
 
@@ -3905,7 +4245,9 @@ mjb_status mjb_hangul_syllable_compose(
 );
 ```
 
-Apply the arithmetic Hangul syllable composition of Unicode Section 3.12, the inverse of `mjb_hangul_syllable_decompose`. Normalization composes Hangul automatically; use this function to build a syllable from individual jamo.
+Apply the arithmetic Hangul syllable composition of Unicode Section 3.12, the inverse of
+`mjb_hangul_syllable_decompose`. Normalization composes Hangul automatically; use this function to
+build a syllable from individual jamo.
 
 - `leading` - The leading consonant jamo (L), U+1100 to U+1112
 - `vowel` - The vowel jamo (V), U+1161 to U+1175
@@ -3932,7 +4274,8 @@ if(mjb_hangul_syllable_compose(0x1100, 0x1161, 0x11A8, &syllable) != MJB_STATUS_
 printf("Syllable: U+%04X", syllable);
 ```
 
-See also: [`mjb_hangul_syllable_decompose`](#mjb_hangul_syllable_decompose), [`mjb_normalize`](#mjb_normalize).
+See also: [`mjb_hangul_syllable_decompose`](#mjb_hangul_syllable_decompose),
+[`mjb_normalize`](#mjb_normalize).
 
 ## `mjb_codepoint_east_asian_width`
 
@@ -3979,7 +4322,15 @@ mjb_status mjb_terminal_width(
 );
 ```
 
-Estimate the number of fixed terminal cells occupied by printable, single-line text. The input is normalized to NFC so canonically equivalent text has the same width. Combining and format characters occupy no additional cells, listed emoji-presentation sequences occupy two cells, and text-presentation sequences retain their East Asian Width. This is a deterministic terminal policy, not a measurement of proportional glyph advances. Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived character counts. Controls, line separators, and paragraph separators are rejected because their effect depends on terminal state. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `width` is set to zero.
+Estimate the number of fixed terminal cells occupied by printable, single-line text. The input is
+normalized to NFC so canonically equivalent text has the same width. Combining and format
+characters occupy no additional cells, listed emoji-presentation sequences occupy two cells, and
+text-presentation sequences retain their East Asian Width. This is a deterministic terminal policy,
+not a measurement of proportional glyph advances. Use grapheme boundaries for cursor movement,
+selection, deletion, and user-perceived character counts. Controls, line separators, and paragraph
+separators are rejected because their effect depends on terminal state. Malformed subsequences
+follow `malformed_policy`, and `diagnostic` records the first one. On failure, `width` is set to
+zero.
 
 - `text` - The printable, single-line text to measure
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -3990,7 +4341,8 @@ Estimate the number of fixed terminal cells occupied by printable, single-line t
 **Returns**
 
 - `MJB_STATUS_OK` - The width was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile or malformed policy is invalid, or the text is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile or malformed policy is invalid, or
+  the text is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is invalid or lacks required byte-order information
 - `MJB_STATUS_UNSUPPORTED` - The input contains a control, line separator, or paragraph separator
 - `MJB_STATUS_NO_MEMORY` - NFC normalization could not allocate memory
@@ -4012,7 +4364,9 @@ if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
 printf("Terminal cells: %zu", width);
 ```
 
-See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_grapheme_prefix_length_for_width`](#mjb_grapheme_prefix_length_for_width), [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
+See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width),
+[`mjb_grapheme_prefix_length_for_width`](#mjb_grapheme_prefix_length_for_width),
+[`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
 
 Specifications: [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-46.html), [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html), [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-31.html).
 
@@ -4027,7 +4381,9 @@ mjb_status mjb_locale_parse(
 );
 ```
 
-Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected.
+Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended
+language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is
+strict: malformed tags are rejected.
 
 - `id` - The BCP 47 language tag to parse
 - `locale` - The locale structure to store the result
@@ -4066,7 +4422,8 @@ const char *mjb_locale_code(
 );
 ```
 
-Return the lowercase two-letter ISO 639-1 code that names `locale`, such as `tr` for `MJB_LOCALE_TR`. `MJB_LOCALE_NOT_SET` yields an empty string.
+Return the lowercase two-letter ISO 639-1 code that names `locale`, such as `tr` for
+`MJB_LOCALE_TR`. `MJB_LOCALE_NOT_SET` yields an empty string.
 
 - `locale` - The locale
 
@@ -4093,7 +4450,8 @@ const char *mjb_script_code(
 );
 ```
 
-Return the four-letter ISO 15924 code that names `script`, such as `Latn` for `MJB_SC_LATN`. `MJB_SC_NOT_SET` yields an empty string.
+Return the four-letter ISO 15924 code that names `script`, such as `Latn` for `MJB_SC_LATN`.
+`MJB_SC_NOT_SET` yields an empty string.
 
 - `script` - The script
 
@@ -4108,7 +4466,8 @@ Return the four-letter ISO 15924 code that names `script`, such as `Latn` for `M
 printf("Script code: %s", mjb_script_code(MJB_SC_LATN));
 ```
 
-See also: [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions).
+See also: [`mjb_codepoint_script`](#mjb_codepoint_script),
+[`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions).
 
 ## `mjb_result_free`
 
@@ -4159,7 +4518,9 @@ int mjb_utf8_snprintf(
 );
 ```
 
-Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer truncates a well-formed UTF-8 result, any incomplete trailing codepoint is removed before the terminating NULL. Truncation is at a codepoint boundary, not a grapheme-cluster boundary.
+Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer
+truncates a well-formed UTF-8 result, any incomplete trailing codepoint is removed before the
+terminating NULL. Truncation is at a codepoint boundary, not a grapheme-cluster boundary.
 
 - `buffer` - The destination buffer, or NULL when buffer_size is zero
 - `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
@@ -4167,7 +4528,8 @@ Use the C library formatting rules and return semantics of `snprintf`. If the de
 
 **Returns**
 
-- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the
+  terminating NULL
 - `A negative value` - The underlying `vsnprintf` reported an encoding error
 
 **Example**
@@ -4181,7 +4543,8 @@ int required = mjb_utf8_snprintf(buffer, sizeof(buffer), "%s",
 printf("%d: %s", required, buffer);
 ```
 
-See also: [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_is_utf8`](#mjb_is_utf8).
+See also: [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf),
+[`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_is_utf8`](#mjb_is_utf8).
 
 ## `mjb_utf8_vsnprintf`
 
@@ -4196,7 +4559,8 @@ int mjb_utf8_vsnprintf(
 );
 ```
 
-The `va_list` counterpart of `mjb_utf8_snprintf`. It has the same UTF-8 input requirements, clipping behavior, and return semantics as `mjb_utf8_snprintf`.
+The `va_list` counterpart of `mjb_utf8_snprintf`. It has the same UTF-8 input requirements,
+clipping behavior, and return semantics as `mjb_utf8_snprintf`.
 
 - `buffer` - The destination buffer, or NULL when buffer_size is zero
 - `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
@@ -4205,7 +4569,8 @@ The `va_list` counterpart of `mjb_utf8_snprintf`. It has the same UTF-8 input re
 
 **Returns**
 
-- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the
+  terminating NULL
 - `A negative value` - The underlying `vsnprintf` reported an encoding error
 
 **Example**
@@ -4228,7 +4593,8 @@ int required = format_utf8(buffer, sizeof(buffer), "%s", "\xC3\xA9\xC3\xA9"); //
 printf("%d: %s", required, buffer);
 ```
 
-See also: [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_is_utf8`](#mjb_is_utf8).
+See also: [`mjb_utf8_snprintf`](#mjb_utf8_snprintf),
+[`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_is_utf8`](#mjb_is_utf8).
 
 ## `mjb_utf8_grapheme_snprintf`
 
@@ -4243,7 +4609,13 @@ int mjb_utf8_grapheme_snprintf(
 );
 ```
 
-Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer truncates a well-formed UTF-8 result, the output is shortened to the largest prefix that ends at an extended grapheme-cluster boundary in the complete result. Unlike `mjb_utf8_snprintf`, truncation can require temporary allocation and a second evaluation of the format. Do not use `%n` or arguments whose values can change as a formatting side effect. On allocation failure the destination is set to an empty string, the function returns a negative value, and `errno` is set to `ENOMEM`.
+Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer
+truncates a well-formed UTF-8 result, the output is shortened to the largest prefix that ends at an
+extended grapheme-cluster boundary in the complete result. Unlike `mjb_utf8_snprintf`, truncation
+can require temporary allocation and a second evaluation of the format. Do not use `%n` or
+arguments whose values can change as a formatting side effect. On allocation failure the
+destination is set to an empty string, the function returns a negative value, and `errno` is set to
+`ENOMEM`.
 
 - `buffer` - The destination buffer, or NULL when buffer_size is zero
 - `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
@@ -4251,7 +4623,8 @@ Use the C library formatting rules and return semantics of `snprintf`. If the de
 
 **Returns**
 
-- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the
+  terminating NULL
 - `A negative value` - Formatting failed or the complete result could not be obtained
 
 **Example**
@@ -4265,7 +4638,9 @@ int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
 printf("%d: %s", required, buffer);
 ```
 
-See also: [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
+See also: [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf),
+[`mjb_utf8_snprintf`](#mjb_utf8_snprintf),
+[`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -4282,7 +4657,8 @@ int mjb_utf8_grapheme_vsnprintf(
 );
 ```
 
-The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same grapheme-safe clipping behavior, allocation requirements, and return semantics as `mjb_utf8_grapheme_snprintf`.
+The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same grapheme-safe clipping
+behavior, allocation requirements, and return semantics as `mjb_utf8_grapheme_snprintf`.
 
 - `buffer` - The destination buffer, or NULL when buffer_size is zero
 - `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
@@ -4291,7 +4667,8 @@ The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same graph
 
 **Returns**
 
-- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the
+  terminating NULL
 - `A negative value` - Formatting failed or the complete result could not be obtained
 
 **Example**
@@ -4315,7 +4692,9 @@ int required = format_graphemes(buffer, sizeof(buffer), "%s",
 printf("%d: %s", required, buffer);
 ```
 
-See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
+See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf),
+[`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf),
+[`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -4361,7 +4740,8 @@ const char *version = mjb_version();
 printf("Version is available: %s", version[0] != '\0' ? "yes" : "no");
 ```
 
-See also: [`mjb_version_number`](#mjb_version_number), [`mjb_unicode_version`](#mjb_unicode_version).
+See also: [`mjb_version_number`](#mjb_version_number),
+[`mjb_unicode_version`](#mjb_unicode_version).
 
 ## `mjb_version_number`
 
@@ -4415,7 +4795,15 @@ mjb_status mjb_set_allocator(
 );
 ```
 
-Install the allocator used for internal allocations and owned result buffers. The allocator is copied and must provide all three callbacks, which receive its context pointer. The library passes the size of every block it reallocates or frees, so arena, pool, and accounting allocators do not need to record sizes themselves: `old_size` and `size` are the size most recently requested for that block, requested sizes are never 0, `realloc` receives NULL with an `old_size` of 0 for a new block and leaves the old block valid on failure, and `free` is never called with NULL. The context remains caller-owned and must stay valid for the lifetime of all Mojibake allocations. Pass NULL to explicitly select the default allocator. This process-global configuration may be set only once and must happen before any other library call or concurrent library use.
+Install the allocator used for internal allocations and owned result buffers. The allocator is
+copied and must provide all three callbacks, which receive its context pointer. The library passes
+the size of every block it reallocates or frees, so arena, pool, and accounting allocators do not
+need to record sizes themselves: `old_size` and `size` are the size most recently requested for
+that block, requested sizes are never 0, `realloc` receives NULL with an `old_size` of 0 for a new
+block and leaves the old block valid on failure, and `free` is never called with NULL. The context
+remains caller-owned and must stay valid for the lifetime of all Mojibake allocations. Pass NULL to
+explicitly select the default allocator. This process-global configuration may be set only once and
+must happen before any other library call or concurrent library use.
 
 - `allocator` - The complete allocator to copy, or NULL to select the default allocator
 
@@ -4462,7 +4850,8 @@ if(mjb_set_allocator(&allocator) != MJB_STATUS_OK) {
 }
 ```
 
-See also: [`mjb_result_free`](#mjb_result_free), [`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free).
+See also: [`mjb_result_free`](#mjb_result_free),
+[`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free).
 
 # Unicode references
 
