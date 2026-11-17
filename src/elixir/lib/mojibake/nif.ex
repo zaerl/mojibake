@@ -58,5 +58,10 @@ defmodule Mojibake.Nif do
   def validate_encoding(_binary, _encoding), do: :erlang.nif_error(:not_loaded)
   def convert_encoding(_binary, _from, _to, _policy), do: :erlang.nif_error(:not_loaded)
   def locale_parse(_tag), do: :erlang.nif_error(:not_loaded)
+  def bidi_resolve(_text, _direction), do: :erlang.nif_error(:not_loaded)
+  def bidi_chars(_paragraph), do: :erlang.nif_error(:not_loaded)
+  def bidi_reorder(_paragraph, _start, _end), do: :erlang.nif_error(:not_loaded)
+  def bidi_runs(_paragraph, _start, _end), do: :erlang.nif_error(:not_loaded)
+  def bidi_visual(_paragraph, _start, _end), do: :erlang.nif_error(:not_loaded)
   def limits, do: :erlang.nif_error(:not_loaded)
 end

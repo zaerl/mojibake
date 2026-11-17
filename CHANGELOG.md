@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sets), `Mojibake.Identifier` (UAX #31), `Mojibake.Encoding` (UTF-8, UTF-16, and UTF-32
   detection, validation, and conversion), and `Mojibake.LanguageTag` (strict BCP 47 parsing and
   formatting). They pass the Unicode collation and IDNA conformance tests
+- Elixir: `Mojibake.Bidi`, the Unicode Bidirectional Algorithm. `resolve/2` returns a paragraph
+  whose levels the NIF keeps, and `levels/1`, `chars/1`, `reorder/2`, `runs/2`, and `visual/2`
+  lay out its lines. It passes `BidiCharacterTest.txt`
+- An Elixir example in `examples/elixir`, run with `make -C examples example-elixir`
 
 ### Changed
 - Updated Attractor to 1.1.0

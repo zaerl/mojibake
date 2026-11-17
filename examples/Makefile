@@ -6,6 +6,7 @@ CPPFLAGS ?= -DNDEBUG
 CFLAGS ?= -O3
 CXXFLAGS ?= -O3
 CARGO ?= cargo
+ELIXIR ?= elixir
 ZIG ?= zig
 
 FEATURE_CHARACTER_NAMES ?= 1
@@ -117,6 +118,11 @@ example-rust: | $(EXAMPLE_BUILD_DIR)
 	cp $(RUST_TARGET_DIR)/release/example-rust$(if $(filter Windows_NT,$(OS)),.exe) \
 		$(RUST_EXAMPLE)$(if $(filter Windows_NT,$(OS)),.exe)
 
+# Run the Elixir example script. Mix.install compiles the package in ../src/elixir, NIF included,
+# into its own cache on the first run.
+example-elixir:
+	$(ELIXIR) elixir/example.exs
+
 # Compile the Zig example program
 example-zig: $(ZIG_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
 	$(ZIG) build-exe --dep mojibake -I $(AMALGAMATION_DIR) $(AMALGAMATION_SOURCE) \
@@ -163,6 +169,6 @@ $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE):
 clean:
 	rm -rf $(EXAMPLE_BUILD_DIR)
 
-.PHONY: all example example-cpp example-python example-rust example-zig \
+.PHONY: all example example-cpp example-elixir example-python example-rust example-zig \
 	example-no-character-names example-no-collation example-no-idna \
 	example-no-security example-no-features clean

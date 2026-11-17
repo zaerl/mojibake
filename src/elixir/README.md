@@ -3,7 +3,8 @@
 Unicode text processing for Elixir: normalization, locale-aware casing, caseless matching,
 grapheme, word, sentence, and line segmentation, terminal width, character data from the Unicode
 Character Database, collation, internationalized domain names, confusable detection, identifiers,
-encoding conversion, and BCP 47 language tags. It passes the official Unicode conformance tests.
+encoding conversion, BCP 47 language tags, and bidirectional text. It passes the official Unicode
+conformance tests.
 
 It wraps [Mojibake](https://github.com/zaerl/mojibake), a self-contained Unicode library written in
 C11 with no dependencies, as a NIF. The package compiles the C sources when you build it, so all
@@ -18,6 +19,10 @@ def deps do
   [{:mojibake, "~> 0.7"}]
 end
 ```
+
+The package compiles its NIF on your machine, so building it needs a C compiler and `make`; on
+Debian and Ubuntu that is the `build-essential` package, and on macOS the Xcode command-line
+tools. It does not build on Windows yet.
 
 ```elixir
 {:ok, "é"} = Mojibake.normalize("é")
@@ -41,6 +46,7 @@ true = Mojibake.Char.property?(?\s, :white_space)
 {:ok, "xn--bcher-kva.example"} = Mojibake.IDNA.to_ascii("Bücher.example")
 true = Mojibake.Security.confusable?("paypal", "pаypal")
 "sr-Latn-RS" = to_string(Mojibake.LanguageTag.parse!("SR-latn-rs"))
+"abc גבא" = Mojibake.Bidi.visual("abc אבג")
 ```
 
 ## What it adds to `String`
@@ -70,6 +76,7 @@ package adds:
 | Identifiers (UAX #31) | `Mojibake.Identifier`: `valid?/2`, `start?/2`, `continue?/2` |
 | Encodings | `Mojibake.Encoding`: UTF-8, UTF-16, and UTF-32 detection, validation, and conversion with byte offsets in errors |
 | BCP 47 language tags | `Mojibake.LanguageTag`: strict parsing and formatting |
+| Bidirectional text (UAX #9) | `Mojibake.Bidi`: embedding levels, visual reordering, level runs, and mirroring |
 
 ## Design
 
@@ -79,6 +86,8 @@ package adds:
 - Queries such as `graphemes/1`, `grapheme_count/1`, and `terminal_width/2` never fail: they treat
   each maximal ill-formed subsequence as U+FFFD.
 - Segments are sub-binaries of the input, so splitting a string does not copy it.
+- A resolved bidi paragraph is a NIF resource: it is resolved once, can be shared between
+  processes, and is freed when it is garbage collected.
 - Casing takes the locale as an option, so the package never touches the C library's
   process-global casing locale.
 - Inputs larger than 16 KiB run on a dirty CPU scheduler, so long strings do not block the normal
@@ -108,9 +117,8 @@ config :mojibake, features: []
 Run `mix deps.compile mojibake --force` after changing it. The `MOJIBAKE_FEATURES` environment
 variable, a comma-separated list or `none`, wins over the configuration.
 
-## Not wrapped yet
+## Not done yet
 
-- the bidirectional algorithm
 - precompiled NIFs, and Windows
 
 ## Contributing

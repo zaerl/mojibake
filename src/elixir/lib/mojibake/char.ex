@@ -263,6 +263,10 @@ defmodule Mojibake.Char do
     end
   end
 
+  # The atom of an mjb_bidi_class value, for Mojibake.Bidi.
+  @doc false
+  def bidi_class_atom(id), do: elem(@bidi_classes, id)
+
   @doc """
   Return `true` if `codepoint` is mirrored in bidirectional text (Bidi_Mirrored), such as `(`.
 

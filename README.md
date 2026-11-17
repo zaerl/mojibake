@@ -277,7 +277,7 @@ API and design.
 `src/elixir` is a Mix project that compiles the C library into a NIF. It covers normalization,
 locale-aware casing, caseless matching, segmentation, line breaking, terminal width, character
 data (properties, names, scripts, blocks, emoji, and Hangul), collation, IDNA, confusables,
-identifiers, encodings, and BCP 47 tags so far.
+identifiers, encodings, BCP 47 tags, and bidirectional text.
 It is not on Hex yet; depend on a checkout with `{:mojibake, path: "path/to/mojibake/src/elixir"}`:
 
 ```elixir
@@ -299,8 +299,9 @@ browsers. It powers the [demo site](https://mojibake.zaerl.com).
 
 Mojibake has a plain C ABI, so any language with a C FFI can use it. The
 [examples](https://github.com/zaerl/mojibake/tree/main/examples) directory has small programs in C,
-C++, Python, Rust, and Zig. The Rust example uses the safe `mojibake` crate; build it with
-`make -C examples example-rust`.
+C++, Elixir, Python, Rust, and Zig. The Rust example uses the safe `mojibake` crate; build it with
+`make -C examples example-rust`. The Elixir example is a script that uses the package in
+`src/elixir`; run it with `make -C examples example-elixir`.
 
 ### CLI
 
