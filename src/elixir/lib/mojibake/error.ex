@@ -13,7 +13,10 @@ defmodule Mojibake.Error do
     * `:malformed_input` - the input is not well-formed UTF-8 and the `:malformed` option is
       `:stop`. `offset` and `length` give the byte range of the first ill-formed subsequence and
       `detail` says what is wrong with it, for example `:missing_continuation`.
-    * `:invalid_locale` - the `:locale` option is not a well-formed BCP 47 language tag.
+    * `:invalid_locale` - a BCP 47 language tag, such as the `:locale` option, is not
+      well-formed.
+    * `:invalid_domain` - `Mojibake.IDNA` found the domain name invalid. `detail` is the list of
+      `t:Mojibake.IDNA.error/0`.
     * `:no_memory` - the C library could not allocate memory.
     * `:overflow` - a size computation overflowed.
     * any other `mjb_status` of the C library, as an atom: `:invalid_argument`,
@@ -28,7 +31,7 @@ defmodule Mojibake.Error do
           reason: reason(),
           offset: non_neg_integer() | nil,
           length: non_neg_integer() | nil,
-          detail: atom() | nil
+          detail: atom() | [atom()] | nil
         }
 
   defexception [:reason, :offset, :length, :detail]
@@ -40,6 +43,9 @@ defmodule Mojibake.Error do
   end
 
   def message(%__MODULE__{reason: :invalid_locale}), do: "invalid BCP 47 language tag"
+
+  def message(%__MODULE__{reason: :invalid_domain, detail: errors}) when is_list(errors),
+    do: "invalid domain name: " <> Enum.map_join(errors, ", ", &describe/1)
 
   def message(%__MODULE__{reason: reason}),
     do: reason |> Atom.to_string() |> String.replace("_", " ")

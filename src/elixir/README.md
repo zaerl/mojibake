@@ -1,8 +1,9 @@
 # Mojibake for Elixir
 
 Unicode text processing for Elixir: normalization, locale-aware casing, caseless matching,
-grapheme, word, sentence, and line segmentation, terminal width, and character data from the
-Unicode Character Database. It passes the official Unicode conformance tests.
+grapheme, word, sentence, and line segmentation, terminal width, character data from the Unicode
+Character Database, collation, internationalized domain names, confusable detection, identifiers,
+encoding conversion, and BCP 47 language tags. It passes the official Unicode conformance tests.
 
 It wraps [Mojibake](https://github.com/zaerl/mojibake), a self-contained Unicode library written in
 C11 with no dependencies, as a NIF. The package compiles the C sources when you build it, so all
@@ -35,6 +36,11 @@ true = Mojibake.caseless_equal?("Straße", "STRASSE")
 {1, 2} = Mojibake.Char.numeric_value(?½)
 true = Mojibake.Char.property?(?\s, :white_space)
 %{type: :flag} = Mojibake.Emoji.sequence("🇮🇹")
+
+["apple", "Apple", "éclair", "zebra"] = Mojibake.Collation.sort(["zebra", "éclair", "apple", "Apple"])
+{:ok, "xn--bcher-kva.example"} = Mojibake.IDNA.to_ascii("Bücher.example")
+true = Mojibake.Security.confusable?("paypal", "pаypal")
+"sr-Latn-RS" = to_string(Mojibake.LanguageTag.parse!("SR-latn-rs"))
 ```
 
 ## What it adds to `String`
@@ -58,6 +64,12 @@ package adds:
 | Scripts, blocks, planes, properties | `Mojibake.Script`, `Mojibake.Block`, `Mojibake.Plane`, `Mojibake.Property` |
 | Emoji sequences (UTS #51) | `Mojibake.Emoji.sequence/1`, `rgi?/1` |
 | Hangul | `Mojibake.Hangul`: composition, decomposition, syllable names |
+| Collation (UTS #10) | `Mojibake.Collation`: `compare/3`, `sort/2`, `sort_key/2`, and an `Enum.sort/2` sorter |
+| Internationalized domain names (UTS #46) | `Mojibake.IDNA`: `to_ascii/1`, `to_unicode/1` |
+| Confusables and mixed scripts (UTS #39) | `Mojibake.Security`: `confusable?/2`, `skeleton/1`, `resolved_scripts/1` |
+| Identifiers (UAX #31) | `Mojibake.Identifier`: `valid?/2`, `start?/2`, `continue?/2` |
+| Encodings | `Mojibake.Encoding`: UTF-8, UTF-16, and UTF-32 detection, validation, and conversion with byte offsets in errors |
+| BCP 47 language tags | `Mojibake.LanguageTag`: strict parsing and formatting |
 
 ## Design
 
@@ -83,8 +95,10 @@ package adds:
 
 The C library has four optional features: `:names` (character names), `:collation`, `:idna`, and
 `:security`. They are all on by default, and `Mojibake.features/0` lists the ones compiled in.
-`Mojibake.Char.name/1` needs `:names`; the other three are not used by the functions in this
-release. Turn off the ones you do not need to make the NIF smaller:
+`Mojibake.Char.name/1` needs `:names`, `Mojibake.Collation` needs `:collation`, `Mojibake.IDNA`
+needs `:idna`, and `Mojibake.Security` needs `:security`; without them they return or raise
+`Mojibake.Error` with reason `:feature_not_enabled`. Turn off the ones you do not need to make the
+NIF smaller:
 
 ```elixir
 # config/config.exs
@@ -96,8 +110,6 @@ variable, a comma-separated list or `none`, wins over the configuration.
 
 ## Not wrapped yet
 
-- encodings other than UTF-8
-- collation, IDNA, identifiers, confusables, and BCP 47 tag parsing
 - the bidirectional algorithm
 - precompiled NIFs, and Windows
 

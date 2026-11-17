@@ -44,5 +44,19 @@ defmodule Mojibake.Nif do
   def hangul_syllable_name(_codepoint), do: :erlang.nif_error(:not_loaded)
   def hangul_decompose(_syllable), do: :erlang.nif_error(:not_loaded)
   def hangul_compose(_leading, _vowel, _trailing), do: :erlang.nif_error(:not_loaded)
+
+  def collation_compare(_first, _second, _variable, _strength, _policy),
+    do: :erlang.nif_error(:not_loaded)
+
+  def collation_key(_text, _variable, _strength, _policy), do: :erlang.nif_error(:not_loaded)
+  def idna(_domain, _form), do: :erlang.nif_error(:not_loaded)
+  def confusable_skeleton(_text), do: :erlang.nif_error(:not_loaded)
+  def confusable_match(_first, _second, _policy), do: :erlang.nif_error(:not_loaded)
+  def resolved_script_set(_text), do: :erlang.nif_error(:not_loaded)
+  def is_identifier(_text, _profile), do: :erlang.nif_error(:not_loaded)
+  def detect_encoding(_binary), do: :erlang.nif_error(:not_loaded)
+  def validate_encoding(_binary, _encoding), do: :erlang.nif_error(:not_loaded)
+  def convert_encoding(_binary, _from, _to, _policy), do: :erlang.nif_error(:not_loaded)
+  def locale_parse(_tag), do: :erlang.nif_error(:not_loaded)
   def limits, do: :erlang.nif_error(:not_loaded)
 end

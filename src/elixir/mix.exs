@@ -70,6 +70,16 @@ defmodule Mojibake.MixProject do
           Mojibake.Plane,
           Mojibake.Emoji,
           Mojibake.Hangul
+        ],
+        "Sorting, domains, and security": [
+          Mojibake.Collation,
+          Mojibake.IDNA,
+          Mojibake.Security,
+          Mojibake.Identifier
+        ],
+        "Encodings and language tags": [
+          Mojibake.Encoding,
+          Mojibake.LanguageTag
         ]
       ],
       source_url: @source_url,

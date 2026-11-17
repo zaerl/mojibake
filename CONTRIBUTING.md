@@ -349,8 +349,8 @@ or format it. The bidi classes and the emoji sequence types and qualifications a
 C enums; their atom lists live in `lib/mojibake/char.ex` and `lib/mojibake/emoji.ex`, and
 `_Static_assert`s in the NIF fail the build when the enums change.
 
-The conformance tests in `test/conformance_test.exs` and `test/ucd_test.exs` read
-`unicode-data/`; set `MOJIBAKE_TEST_DATA` to read the files from elsewhere. They are skipped when the files are missing.
+The conformance tests in `test/conformance_test.exs`, `test/ucd_test.exs`, and
+`test/text_conformance_test.exs` (collation and IDNA) read `unicode-data/`; set `MOJIBAKE_TEST_DATA` to read the files from elsewhere. They are skipped when the files are missing.
 
 ### Packaging and publishing
 
@@ -364,8 +364,7 @@ To publish, run `make vendor-elixir`, then `mix hex.publish` in `src/elixir`.
 
 ### Not done yet
 
-- encodings, collation, IDNA, identifiers, confusables, BCP 47 tags, and the bidirectional
-  algorithm
+- the bidirectional algorithm
 - precompiled NIFs and Windows support
 
 ## Reporting Issues

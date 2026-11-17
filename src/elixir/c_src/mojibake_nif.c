@@ -28,6 +28,7 @@ _Static_assert(MJB_TEXT_ERROR_UNPAIRED_SURROGATE == 10, "update mjb_nif_text_err
 _Static_assert(MJB_EMOJI_SEQUENCE_EMOJI_VARIATION == 8, "update Mojibake.Emoji sequence types");
 _Static_assert(MJB_EMOJI_QUALIFICATION_UNQUALIFIED == 4, "update Mojibake.Emoji qualifications");
 _Static_assert(MJB_PR_BIDI_CLASS_PDI == 23, "update the bidi classes of Mojibake.Char");
+_Static_assert(MJB_IDNA_ERROR_DOMAIN_LENGTH == 0x400, "update the errors of Mojibake.IDNA");
 
 static const char *const mjb_nif_status_names[] = { "ok", "invalid_argument", "invalid_encoding",
     "invalid_codepoint", "invalid_form", "unsupported", "no_memory", "overflow", "malformed_input",
@@ -980,6 +981,12 @@ static ERL_NIF_TERM mjb_nif_codepoint_is(ErlNifEnv *env, int argc, const ERL_NIF
         { "hangul_trailing_jamo", mjb_codepoint_is_hangul_trailing_jamo },
         { "hangul_jamo", mjb_codepoint_is_hangul_jamo },
         { "hangul_syllable", mjb_codepoint_is_hangul_syllable },
+        { "id_start", mjb_codepoint_is_id_start },
+        { "id_continue", mjb_codepoint_is_id_continue },
+        { "xid_start", mjb_codepoint_is_xid_start },
+        { "xid_continue", mjb_codepoint_is_xid_continue },
+        { "pattern_syntax", mjb_codepoint_is_pattern_syntax },
+        { "pattern_white_space", mjb_codepoint_is_pattern_white_space },
     };
 
     for(size_t i = 0; i < MJB_NIF_COUNT(predicates); ++i) {
@@ -1096,6 +1103,373 @@ static ERL_NIF_TERM mjb_nif_hangul_compose(ErlNifEnv *env, int argc, const ERL_N
     return mjb_nif_ok(env, enif_make_uint(env, syllable));
 }
 
+// Collation, IDNA, security, identifiers, encodings, and language tags
+
+static bool mjb_nif_get_collation(ErlNifEnv *env, ERL_NIF_TERM variable_term,
+    ERL_NIF_TERM strength_term, mjb_collation_variable_weighting *variable,
+    mjb_collation_strength *strength) {
+    if(mjb_nif_atom_is(env, variable_term, "non_ignorable")) {
+        *variable = MJB_COLLATION_NON_IGNORABLE;
+    } else if(mjb_nif_atom_is(env, variable_term, "shifted")) {
+        *variable = MJB_COLLATION_SHIFTED;
+    } else {
+        return false;
+    }
+
+    if(mjb_nif_atom_is(env, strength_term, "primary")) {
+        *strength = MJB_COLLATION_PRIMARY;
+    } else if(mjb_nif_atom_is(env, strength_term, "secondary")) {
+        *strength = MJB_COLLATION_SECONDARY;
+    } else if(mjb_nif_atom_is(env, strength_term, "tertiary")) {
+        *strength = MJB_COLLATION_TERTIARY;
+    } else if(mjb_nif_atom_is(env, strength_term, "quaternary")) {
+        *strength = MJB_COLLATION_QUATERNARY;
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+// collation_compare(first, second, variable, strength, policy) -> {:ok, -1 | 0 | 1}
+static ERL_NIF_TERM mjb_nif_collation_compare(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary first_binary;
+    ErlNifBinary second_binary;
+    mjb_text first;
+    mjb_text second;
+    mjb_collation_variable_weighting variable;
+    mjb_collation_strength strength;
+    mjb_malformed_policy policy;
+
+    if(argc != 5 || !mjb_nif_get_text(env, argv[0], &first_binary, &first) ||
+        !mjb_nif_get_text(env, argv[1], &second_binary, &second) ||
+        !mjb_nif_get_collation(env, argv[2], argv[3], &variable, &strength) ||
+        !mjb_nif_get_policy(env, argv[4], &policy)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_collation_compare, first_binary.size + second_binary.size);
+
+    int order = 0;
+    mjb_diagnostic first_diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_diagnostic second_diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_status status = mjb_collation_compare(&first, &second, policy, variable, strength, &order,
+        &first_diagnostic, &second_diagnostic);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status,
+            first_diagnostic.error != MJB_TEXT_ERROR_NONE ? &first_diagnostic : &second_diagnostic);
+    }
+
+    return mjb_nif_ok(env, enif_make_int(env, order < 0 ? -1 : (order > 0 ? 1 : 0)));
+}
+
+// collation_key(text, variable, strength, policy) -> {:ok, binary}
+static ERL_NIF_TERM mjb_nif_collation_key(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+    mjb_collation_variable_weighting variable;
+    mjb_collation_strength strength;
+    mjb_malformed_policy policy;
+
+    if(argc != 4 || !mjb_nif_get_text(env, argv[0], &binary, &text) ||
+        !mjb_nif_get_collation(env, argv[1], argv[2], &variable, &strength) ||
+        !mjb_nif_get_policy(env, argv[3], &policy)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_collation_key, binary.size);
+
+    mjb_result result = { NULL, 0, 0, false };
+    mjb_diagnostic diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_status status = mjb_collation_key(&text, policy, variable, strength, &result, &diagnostic);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, &diagnostic);
+    }
+
+    return mjb_nif_result(env, argv[0], &binary, &result);
+}
+
+// idna(domain, :ascii | :unicode) -> {:ok, {binary, error_bits}}. The binary is the best-effort
+// result even when error_bits, a mask of mjb_idna_error, is not zero.
+static ERL_NIF_TERM mjb_nif_idna(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+    bool ascii = false;
+
+    if(argc != 2 || !mjb_nif_get_text(env, argv[0], &binary, &text)) {
+        return enif_make_badarg(env);
+    }
+
+    if(mjb_nif_atom_is(env, argv[1], "ascii")) {
+        ascii = true;
+    } else if(!mjb_nif_atom_is(env, argv[1], "unicode")) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_idna, binary.size);
+
+    mjb_result result = { NULL, 0, 0, false };
+    mjb_idna_info info = { MJB_IDNA_ERROR_NONE };
+    mjb_status status = ascii ? mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, &result) :
+                                mjb_idna_to_unicode(&text, MJB_ENC_UTF_8, &info, &result);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM converted = mjb_nif_result(env, argv[0], &binary, &result);
+    const ERL_NIF_TERM *tuple = NULL;
+    int arity = 0;
+
+    // mjb_nif_result returns {:ok, binary} or an error tuple.
+    if(!enif_get_tuple(env, converted, &arity, &tuple) || arity != 2 ||
+        !enif_is_identical(tuple[0], mjb_nif_atoms.ok)) {
+        return converted;
+    }
+
+    return mjb_nif_ok(env, enif_make_tuple2(env, tuple[1], enif_make_uint(env, info.errors)));
+}
+
+// confusable_skeleton(text) -> {:ok, binary}
+static ERL_NIF_TERM mjb_nif_confusable_skeleton(ErlNifEnv *env, int argc,
+    const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+
+    if(argc != 1 || !mjb_nif_get_text(env, argv[0], &binary, &text)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_confusable_skeleton, binary.size);
+
+    mjb_result result = { NULL, 0, 0, false };
+    mjb_status status = mjb_confusable_skeleton(&text, MJB_ENC_UTF_8, &result);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_result(env, argv[0], &binary, &result);
+}
+
+// confusable_match(first, second, policy) -> {:ok, boolean}
+static ERL_NIF_TERM mjb_nif_confusable_match(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary first_binary;
+    ErlNifBinary second_binary;
+    mjb_text first;
+    mjb_text second;
+    mjb_malformed_policy policy;
+
+    if(argc != 3 || !mjb_nif_get_text(env, argv[0], &first_binary, &first) ||
+        !mjb_nif_get_text(env, argv[1], &second_binary, &second) ||
+        !mjb_nif_get_policy(env, argv[2], &policy)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_confusable_match, first_binary.size + second_binary.size);
+
+    bool confusable = false;
+    mjb_diagnostic first_diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_diagnostic second_diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_status status = mjb_confusable_match(&first, &second, policy, &confusable,
+        &first_diagnostic, &second_diagnostic);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status,
+            first_diagnostic.error != MJB_TEXT_ERROR_NONE ? &first_diagnostic : &second_diagnostic);
+    }
+
+    return mjb_nif_ok(env, mjb_nif_bool(confusable));
+}
+
+// resolved_script_set(text) -> {:ok, :all | :empty | [mjb_script]}
+static ERL_NIF_TERM mjb_nif_resolved_script_set(ErlNifEnv *env, int argc,
+    const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+
+    if(argc != 1 || !mjb_nif_get_text(env, argv[0], &binary, &text)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_resolved_script_set, binary.size);
+
+    // A resolved set never holds more scripts than there are.
+    mjb_script scripts[MJB_SC_COUNT];
+    size_t count = MJB_NIF_COUNT(scripts);
+    mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
+    mjb_status status = mjb_resolved_script_set(&text, scripts, &count, &kind);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    if(kind == MJB_SCRIPT_SET_ALL) {
+        return mjb_nif_ok(env, enif_make_atom(env, "all"));
+    }
+
+    if(kind == MJB_SCRIPT_SET_EMPTY) {
+        return mjb_nif_ok(env, enif_make_atom(env, "empty"));
+    }
+
+    ERL_NIF_TERM list = enif_make_list(env, 0);
+
+    for(size_t i = count; i > 0; --i) {
+        list = enif_make_list_cell(env, enif_make_int(env, (int)scripts[i - 1]), list);
+    }
+
+    return mjb_nif_ok(env, list);
+}
+
+// is_identifier(text, :default | :nfkc) -> boolean
+static ERL_NIF_TERM mjb_nif_is_identifier(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+    mjb_identifier_profile profile;
+
+    if(argc != 2 || !mjb_nif_get_text(env, argv[0], &binary, &text)) {
+        return enif_make_badarg(env);
+    }
+
+    if(mjb_nif_atom_is(env, argv[1], "default")) {
+        profile = MJB_IDENTIFIER_DEFAULT;
+    } else if(mjb_nif_atom_is(env, argv[1], "nfkc")) {
+        profile = MJB_IDENTIFIER_NFKC;
+    } else {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_is_identifier, binary.size);
+
+    return mjb_nif_bool(mjb_is_identifier(&text, profile));
+}
+
+static bool mjb_nif_get_encoding(ErlNifEnv *env, ERL_NIF_TERM term, mjb_encoding *encoding) {
+    static const struct {
+        const char *name;
+        mjb_encoding encoding;
+    } encodings[] = {
+        { "ascii", MJB_ENC_ASCII },
+        { "utf8", MJB_ENC_UTF_8 },
+        { "utf16", MJB_ENC_UTF_16 },
+        { "utf16be", MJB_ENC_UTF_16BE },
+        { "utf16le", MJB_ENC_UTF_16LE },
+        { "utf32", MJB_ENC_UTF_32 },
+        { "utf32be", MJB_ENC_UTF_32BE },
+        { "utf32le", MJB_ENC_UTF_32LE },
+    };
+
+    for(size_t i = 0; i < MJB_NIF_COUNT(encodings); ++i) {
+        if(mjb_nif_atom_is(env, term, encodings[i].name)) {
+            *encoding = encodings[i].encoding;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// detect_encoding(binary) -> the mjb_encoding bit mask
+static ERL_NIF_TERM mjb_nif_detect_encoding(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+
+    if(argc != 1 || !enif_inspect_binary(env, argv[0], &binary)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_detect_encoding, binary.size);
+
+    return enif_make_uint(env,
+        (unsigned int)mjb_detect_encoding((const char *)binary.data, binary.size));
+}
+
+// validate_encoding(binary, encoding) -> :ok or an error
+static ERL_NIF_TERM mjb_nif_validate_encoding(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_encoding encoding;
+
+    if(argc != 2 || !enif_inspect_binary(env, argv[0], &binary) ||
+        !mjb_nif_get_encoding(env, argv[1], &encoding)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_validate_encoding, binary.size);
+
+    mjb_text text = mjb_text_make((const char *)binary.data, binary.size, encoding);
+    mjb_diagnostic diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_status status = mjb_validate_encoding(&text, &diagnostic);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, &diagnostic);
+    }
+
+    return mjb_nif_atoms.ok;
+}
+
+// convert_encoding(binary, from, to, policy) -> {:ok, binary}
+static ERL_NIF_TERM mjb_nif_convert_encoding(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_encoding from;
+    mjb_encoding to;
+    mjb_malformed_policy policy;
+
+    if(argc != 4 || !enif_inspect_binary(env, argv[0], &binary) ||
+        !mjb_nif_get_encoding(env, argv[1], &from) || !mjb_nif_get_encoding(env, argv[2], &to) ||
+        !mjb_nif_get_policy(env, argv[3], &policy)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_convert_encoding, binary.size);
+
+    mjb_text text = mjb_text_make((const char *)binary.data, binary.size, from);
+    mjb_result result = { NULL, 0, 0, false };
+    mjb_diagnostic diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
+    mjb_status status = mjb_convert_encoding(&text, policy, to, &result, &diagnostic);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, &diagnostic);
+    }
+
+    return mjb_nif_result(env, argv[0], &binary, &result);
+}
+
+// locale_parse(tag) -> {:ok, {language, extlang, script, region, variant, extensions,
+// private_use, grandfathered, casing_code}}, with "" for absent fields.
+static ERL_NIF_TERM mjb_nif_locale_parse(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+
+    if(argc != 1 || !mjb_nif_get_text(env, argv[0], &binary, &text)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_locale_id id;
+    memset(&id, 0, sizeof(id));
+
+    mjb_status status = mjb_locale_parse(&text, &id);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM fields[] = {
+        mjb_nif_string(env, id.language, sizeof(id.language)),
+        mjb_nif_string(env, id.extlang, sizeof(id.extlang)),
+        mjb_nif_string(env, id.script, sizeof(id.script)),
+        mjb_nif_string(env, id.region, sizeof(id.region)),
+        mjb_nif_string(env, id.variant, sizeof(id.variant)),
+        mjb_nif_string(env, id.extensions, sizeof(id.extensions)),
+        mjb_nif_string(env, id.private_use, sizeof(id.private_use)),
+        mjb_nif_string(env, id.grandfathered, sizeof(id.grandfathered)),
+        mjb_nif_string(env, id.code, sizeof(id.code)),
+    };
+
+    return mjb_nif_ok(env, enif_make_tuple_from_array(env, fields, MJB_NIF_COUNT(fields)));
+}
+
 // limits() -> the sizes of the C enums, to check the generated Elixir tables against.
 static ERL_NIF_TERM mjb_nif_limits(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     (void)argc;
@@ -1197,6 +1571,17 @@ static ErlNifFunc mjb_nif_funcs[] = {
     { "hangul_syllable_name", 1, mjb_nif_hangul_syllable_name, 0 },
     { "hangul_decompose", 1, mjb_nif_hangul_decompose, 0 },
     { "hangul_compose", 3, mjb_nif_hangul_compose, 0 },
+    { "collation_compare", 5, mjb_nif_collation_compare, 0 },
+    { "collation_key", 4, mjb_nif_collation_key, 0 },
+    { "idna", 2, mjb_nif_idna, 0 },
+    { "confusable_skeleton", 1, mjb_nif_confusable_skeleton, 0 },
+    { "confusable_match", 3, mjb_nif_confusable_match, 0 },
+    { "resolved_script_set", 1, mjb_nif_resolved_script_set, 0 },
+    { "is_identifier", 2, mjb_nif_is_identifier, 0 },
+    { "detect_encoding", 1, mjb_nif_detect_encoding, 0 },
+    { "validate_encoding", 2, mjb_nif_validate_encoding, 0 },
+    { "convert_encoding", 4, mjb_nif_convert_encoding, 0 },
+    { "locale_parse", 1, mjb_nif_locale_parse, 0 },
     { "limits", 0, mjb_nif_limits, 0 },
 };
 
