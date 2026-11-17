@@ -353,7 +353,7 @@ the MIT License.</p>
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
-        // See Mojibake::encodeString in src/api/index.ts for the TypeScript implementation of this function.
+        // See Mojibake::encodeString in src/wasm/index.ts for the TypeScript implementation of this function.
         function encodeString(str, encoding) {
             if(encoding == 0x1) { // ASCII
                 const bytes = new Uint8Array(str.length);

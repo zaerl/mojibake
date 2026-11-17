@@ -10,7 +10,7 @@
 #include "mojibake-internal.h"
 
 #ifdef __EMSCRIPTEN__
-// src/api/index.ts writes mjb_text into WASM memory as three consecutive 32-bit fields
+// src/wasm/index.ts writes mjb_text into WASM memory as three consecutive 32-bit fields
 MJB_STATIC_ASSERT(sizeof(mjb_text) == 12, "mjb_text must be 12 bytes on wasm32");
 MJB_STATIC_ASSERT(offsetof(mjb_text, byte_length) == 4, "mjb_text byte_length must be at 4");
 MJB_STATIC_ASSERT(offsetof(mjb_text, encoding) == 8, "mjb_text encoding must be at 8");

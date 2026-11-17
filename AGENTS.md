@@ -31,7 +31,7 @@ The repository contains:
 - an Elixir Mix package in `src/elixir/` that compiles the C library into a NIF
   (`c_src/mojibake_nif.c`, built through `elixir_make`); see `src/elixir/README.md`
 - a native command-line client in `src/shell/`
-- an Emscripten/WASM module and TypeScript API in `src/api/`, plus a demo site in `src/site/`
+- an Emscripten/WASM module and TypeScript API in `src/wasm/`, plus a demo site in `src/site/`
 - a SwiftUI macOS/iOS demo app in `src/ui/Mojibake/` (Xcode project; not built by CMake or CI)
 - a generated single-file distribution in `build-amalgamation/`
 - consumer examples for C, C++, Python, Rust, and Zig in `examples/`
@@ -75,7 +75,7 @@ work also needs Node.js, npm, `curl`, and `unzip`. Install generator dependencie
 (cd utils/generate && npm ci)
 ```
 
-For TypeScript API work, also run `(cd src/api && npm ci)`. The WASM and browser workflows
+For TypeScript API work, also run `(cd src/wasm && npm ci)`. The WASM and browser workflows
 additionally require Emscripten and a Chromium-based browser. Docker is required only for the
 Docker and fuzz targets. clang-tidy (for example Homebrew `llvm`) is needed only for `make tidy`.
 
@@ -170,7 +170,7 @@ build time, else the current directory. See "Testing" in `CONTRIBUTING.md`.
 For WASM/API work:
 
 - `make sync-api-wasm` - build with Emscripten and copy `mojibake.js` and `mojibake.wasm` into
-  `src/api/`
+  `src/wasm/`
 - `make build-api` - sync WASM and build the TypeScript package
 - `make test-wasm` - sync WASM, build the TypeScript package, and test it in Node and a local
   browser
@@ -179,7 +179,7 @@ For WASM/API work:
 - `make watch-api` - watch the TypeScript API tests
 
 `make test-wasm` rebuilds the WASM artifacts first, so it needs Emscripten. To test the artifacts
-already in `src/api/` without rebuilding, run `(cd src/api && npm test)`.
+already in `src/wasm/` without rebuilding, run `(cd src/wasm && npm test)`.
 `MJB_BROWSER` can select a non-default Chromium-based browser for browser tests.
 
 ### Writing tests
@@ -197,7 +197,7 @@ expected, "description")` for ordinary values and predicates and `ATT_ASSERT_STA
   cover out-of-memory paths of allocating APIs.
 - `tests/example.c` and `tests/ext/cpp/example.cpp` are generated from the examples in
   `utils/generate/functions.ts`; edit the examples there.
-- C++ wrapper tests live in `tests/ext/cpp/`, TypeScript tests in `src/api/tests/`, and CLI output
+- C++ wrapper tests live in `tests/ext/cpp/`, TypeScript tests in `src/wasm/tests/`, and CLI output
   tests in `tests/shell/`.
 
 `make coverage` runs the native test binary with coverage accounting and rewrites `TESTS.md`.
@@ -237,7 +237,7 @@ Useful generation targets:
 
 Full generation updates generated sections or files including `src/unicode-data.h`,
 `src/unicode.h`, `src/mojibake.h`, `src/properties.c`, `src/bidi.c`, `src/locales.c`,
-`src/CMakeLists.txt`, `src/api/unicode.ts`, `src/api/locales.ts`, `src/api/mojibake.d.ts`,
+`src/CMakeLists.txt`, `src/wasm/unicode.ts`, `src/wasm/locales.ts`, `src/wasm/mojibake.d.ts`,
 `API.md`, `tests/example.c`, `tests/ext/cpp/example.cpp`,
 `src/rust/mojibake-sys/src/functions.rs`, and `src/elixir/lib/mojibake/unicode_data.ex`. Follow the generated markers in those files; surrounding
 hand-written code remains editable.
@@ -291,7 +291,7 @@ Core modules in `src/`:
 Key public headers are `src/mojibake.h`, `src/unicode.h`, and `src/locales.h`. Other areas:
 
 - `src/shell/` - the CLI (`main.c`, `shell.c`, one file per command group in `commands/`)
-- `src/api/` - TypeScript wrapper (`index.ts`), synced WASM artifacts, and API tests
+- `src/wasm/` - TypeScript wrapper (`index.ts`), synced WASM artifacts, and API tests
 - `src/elixir/` - Elixir package: `lib/` (Elixir API; `lib/mojibake/unicode_data.ex` is
   generated), `c_src/mojibake_nif.c` (NIF), `Makefile` (NIF build), and `test/` (ExUnit and
   conformance tests)
@@ -313,7 +313,7 @@ the corresponding C module. When adding or changing a public function:
 1. Update its metadata, documentation, and examples in `utils/generate/functions.ts`.
 2. Update the C implementation and focused C tests.
 3. Update the C++ wrapper and `tests/ext/cpp/` when the wrapper exposes the API.
-4. Set `wasm: true` and update `src/api/index.ts` and `src/api/tests/` when the API is exposed
+4. Set `wasm: true` and update `src/wasm/index.ts` and `src/wasm/tests/` when the API is exposed
    through WASM.
 5. Run `make generate` so `src/mojibake.h`, `API.md`, the WASM export list, declarations, the
    `mojibake-sys` FFI, and generated examples stay in sync. A new C type in a signature needs a
@@ -389,7 +389,7 @@ When changing CLI output, update the expectations in `tests/shell/` and run `mak
 - Unused parameters are compiler errors under `MJB_WARNINGS_AS_ERRORS`. Mark intentionally unused
   parameters with `(void)name;` at the start of the function body.
 - Typecheck generator changes with `(cd utils/generate && npm exec -- tsc --noEmit)`.
-- Typecheck API changes with `(cd src/api && npm run typecheck)`.
+- Typecheck API changes with `(cd src/wasm && npm run typecheck)`.
 - Record user-visible changes in `CHANGELOG.md`.
 
 ## Before finishing
@@ -404,7 +404,7 @@ validation commands were run:
 | Allocation, buffers, or pointer arithmetic | the above plus `make test-sanitizers` |
 | Public API | the above plus `make generate`, `make test-wasm` if WASM-exposed |
 | Generator | `tsc --noEmit` in `utils/generate`, `make generate`, then the native tests |
-| TypeScript API | `(cd src/api && npm run typecheck)` and `make test-wasm` |
+| TypeScript API | `(cd src/wasm && npm run typecheck)` and `make test-wasm` |
 | CLI | `make build` and `make ctest` |
 | Rust crates, or C structs and enums they mirror | `make test-rust` |
 | Rust packaging, or the C source file set | `make package-rust` |

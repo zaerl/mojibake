@@ -152,11 +152,11 @@ generate-site: src/site/index.html
 	@cd ./utils/generate && npm run generate-site
 
 sync-api-wasm: build-wasm
-	@cp $(WASM_BUILD_DIR)/src/mojibake.js src/api/mojibake.js
-	@cp $(WASM_BUILD_DIR)/src/mojibake.wasm src/api/mojibake.wasm
+	@cp $(WASM_BUILD_DIR)/src/mojibake.js src/wasm/mojibake.js
+	@cp $(WASM_BUILD_DIR)/src/mojibake.wasm src/wasm/mojibake.wasm
 
 build-api: sync-api-wasm
-	@cd ./src/api && npm run build
+	@cd ./src/wasm && npm run build
 
 # Watch site files
 watch-site: build-api src/site/index.html
@@ -164,7 +164,7 @@ watch-site: build-api src/site/index.html
 
 # Watch API files
 watch-api: sync-api-wasm
-	cd ./src/api && npm run dev
+	cd ./src/wasm && npm run dev
 
 # Generate WASM library
 wasm: sync-api-wasm generate-site
@@ -274,7 +274,7 @@ test-cpp-minimal:
 
 # Rebuild and sync the WASM artifacts, then build the API and run its Node and browser tests
 test-wasm: sync-api-wasm
-	@cd ./src/api && npm run test
+	@cd ./src/wasm && npm run test
 
 # Run tests with AddressSanitizer
 test-asan: $(UNICODE_DATA) test-data
@@ -475,7 +475,7 @@ help:
 	@echo "  generate-unicode-tables - Generate embedded Unicode lookup tables"
 	@echo "  lint                    - Check C and C++ formatting with Apple's clang-format"
 	@echo "  tidy                    - Run clang-tidy on the library, CLI, and tests"
-	@echo "  sync-api-wasm           - Copy current WASM build artifacts into src/api"
+	@echo "  sync-api-wasm           - Copy current WASM build artifacts into src/wasm"
 	@echo "  test                    - Build and run tests"
 	@echo "  test-all                - Build and run all local test configurations"
 	@echo "  test-asan               - Build and run tests with AddressSanitizer"

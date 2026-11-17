@@ -22,8 +22,8 @@ REM Copy WASM files
 copy /Y "..\..\build-wasm\src\mojibake.js" "..\..\build-amalgamation\mojibake.js" >NUL
 copy /Y "..\..\build-wasm\src\mojibake.wasm" "..\..\build-amalgamation\mojibake.wasm" >NUL
 
-copy /Y "..\..\build-wasm\src\mojibake.js" "..\..\src\api\mojibake.js" >NUL
-copy /Y "..\..\build-wasm\src\mojibake.wasm" "..\..\src\api\mojibake.wasm" >NUL
+copy /Y "..\..\build-wasm\src\mojibake.js" "..\..\src\wasm\mojibake.js" >NUL
+copy /Y "..\..\build-wasm\src\mojibake.wasm" "..\..\src\wasm\mojibake.wasm" >NUL
 
 set /P VERSION=<"..\..\VERSION"
 set "VERSION=!VERSION: =!"

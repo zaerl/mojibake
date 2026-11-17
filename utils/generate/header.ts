@@ -125,7 +125,7 @@ function getBidiMirroringInfo(pairs: BidiMirroringPair[]) {
 
 export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[], bidiMirroring: BidiMirroringPair[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
-  let fileWASMContent = readFileSync('../../src/api/unicode.ts', 'utf-8');
+  let fileWASMContent = readFileSync('../../src/wasm/unicode.ts', 'utf-8');
   let fileHTMLContent = readFileSync('../../src/site/index.html', 'utf-8');
 
   // Fill unicode.h mjb_block.
@@ -219,6 +219,6 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = substituteBlock(fileContent, "static const mjb_bidi_mirroring_pair mjb_bidi_mirroring[] = {\n", "\n};", getBidiMirroringInfo(bidiMirroring));
 
   writeFileSync('../../src/bidi.c', fileContent);
-  writeFileSync('../../src/api/unicode.ts', fileWASMContent);
+  writeFileSync('../../src/wasm/unicode.ts', fileWASMContent);
   writeFileSync('../../src/site/index.html', fileHTMLContent);
 }
