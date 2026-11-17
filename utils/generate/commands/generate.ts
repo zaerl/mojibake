@@ -9,6 +9,7 @@ import { Analysis } from '../analysis';
 import { Character } from '../character';
 import { characterDecomposition, generateComposition, generateDecomposition } from '../decomposition';
 import { generateAPI } from '../file-generators/api-md';
+import { generateElixirUnicodeData } from '../file-generators/elixir-unicode-data';
 import { generateExampleC } from '../file-generators/example-c';
 import { generateExampleCPP } from '../file-generators/example-cpp';
 import { generateLocales } from '../file-generators/locales-h';
@@ -231,6 +232,7 @@ async function generate() {
   await generateUnicodeDataHeader();
   await generateLocales(properties);
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);
+  generateElixirUnicodeData(blocks, properties);
   generateWASM();
   // generateData(characters);
   generateAPI();

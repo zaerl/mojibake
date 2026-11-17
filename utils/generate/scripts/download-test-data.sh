@@ -24,14 +24,18 @@ fetch() {
     fi
 }
 
+# Blocks.txt and the property files after it are read by the Elixir character-data tests.
 for file in "BidiCharacterTest.txt" "BidiTest.txt" "CaseFolding.txt" \
     "DerivedNormalizationProps.txt" "NameAliases.txt" "NormalizationTest.txt" \
-    "PropertyValueAliases.txt" "ScriptExtensions.txt" "SpecialCasing.txt" "UnicodeData.txt"; do
+    "PropertyValueAliases.txt" "ScriptExtensions.txt" "SpecialCasing.txt" "UnicodeData.txt" \
+    "Blocks.txt" "DerivedCoreProperties.txt" "EastAsianWidth.txt" "LineBreak.txt" \
+    "PropList.txt" "Scripts.txt" "emoji/emoji-data.txt" "extracted/DerivedJoiningType.txt"; do
     fetch "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/$file" "$DATA_DIR/UCD/$file"
 done
 
 for file in "GraphemeBreakTest.txt" "LineBreakTest.txt" "SentenceBreakTest.txt" \
-    "WordBreakTest.txt"; do
+    "WordBreakTest.txt" "GraphemeBreakProperty.txt" "SentenceBreakProperty.txt" \
+    "WordBreakProperty.txt"; do
     fetch "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/auxiliary/$file" \
         "$DATA_DIR/UCD/auxiliary/$file"
 done

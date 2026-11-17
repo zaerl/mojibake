@@ -234,8 +234,8 @@ Useful generation targets:
 Full generation updates generated sections or files including `src/unicode-data.h`,
 `src/unicode.h`, `src/mojibake.h`, `src/properties.c`, `src/bidi.c`, `src/locales.c`,
 `src/CMakeLists.txt`, `src/api/unicode.ts`, `src/api/locales.ts`, `src/api/mojibake.d.ts`,
-`API.md`, `tests/example.c`, `tests/ext/cpp/example.cpp`, and
-`src/rust/mojibake-sys/src/functions.rs`. Follow the generated markers in those files; surrounding
+`API.md`, `tests/example.c`, `tests/ext/cpp/example.cpp`,
+`src/rust/mojibake-sys/src/functions.rs`, and `src/elixir/lib/mojibake/unicode_data.ex`. Follow the generated markers in those files; surrounding
 hand-written code remains editable.
 
 When changing the generated table layout, make the change measurable and reversible:
@@ -288,8 +288,9 @@ Key public headers are `src/mojibake.h`, `src/unicode.h`, and `src/locales.h`. O
 
 - `src/shell/` - the CLI (`main.c`, `shell.c`, one file per command group in `commands/`)
 - `src/api/` - TypeScript wrapper (`index.ts`), synced WASM artifacts, and API tests
-- `src/elixir/` - Elixir package: `lib/` (Elixir API), `c_src/mojibake_nif.c` (NIF), `Makefile`
-  (NIF build), and `test/` (ExUnit and conformance tests)
+- `src/elixir/` - Elixir package: `lib/` (Elixir API; `lib/mojibake/unicode_data.ex` is
+  generated), `c_src/mojibake_nif.c` (NIF), `Makefile` (NIF build), and `test/` (ExUnit and
+  conformance tests)
 - `src/site/` - static demo site generated from the WASM build
 - `src/ui/Mojibake/` - SwiftUI demo app
 - `fuzz/` - libFuzzer harness, seed corpus, and Dockerfile
