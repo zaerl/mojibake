@@ -14,6 +14,9 @@ export interface Property {
   name: string;
   bool: boolean;
   values: { [key: string]: number };
+  // True when the library stores per-codepoint values of this property, so
+  // mjb_codepoint_property_binary or mjb_codepoint_property_int can return them.
+  stored: boolean;
 }
 
 export interface PropertyRange {
@@ -54,7 +57,8 @@ async function readPropertyNamesValues(): Promise<Property[]> {
         shortName: property,
         name: longName,
         bool: false,
-        values: {}
+        values: {},
+        stored: false
       };
     } else {
       log(`Property ${property} already exists`);
@@ -187,6 +191,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
           }
         }
 
+        properties[propertyMap[property]].stored = true;
         propertyEntries.push({
           propertyId: properties[propertyMap[property]].id,
           start: range.codepointStart,

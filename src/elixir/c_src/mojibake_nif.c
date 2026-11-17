@@ -24,6 +24,11 @@
 _Static_assert(MJB_STATUS_END_OF_INPUT == 13, "update mjb_nif_status_names");
 _Static_assert(MJB_TEXT_ERROR_UNPAIRED_SURROGATE == 10, "update mjb_nif_text_error_names");
 
+// lib/mojibake/emoji.ex and lib/mojibake/char.ex map these hand-written C enums to atoms.
+_Static_assert(MJB_EMOJI_SEQUENCE_EMOJI_VARIATION == 8, "update Mojibake.Emoji sequence types");
+_Static_assert(MJB_EMOJI_QUALIFICATION_UNQUALIFIED == 4, "update Mojibake.Emoji qualifications");
+_Static_assert(MJB_PR_BIDI_CLASS_PDI == 23, "update the bidi classes of Mojibake.Char");
+
 static const char *const mjb_nif_status_names[] = { "ok", "invalid_argument", "invalid_encoding",
     "invalid_codepoint", "invalid_form", "unsupported", "no_memory", "overflow", "malformed_input",
     "output_too_small", "callback_stopped", "not_found", "feature_not_enabled", "end_of_input" };
@@ -742,6 +747,385 @@ static ERL_NIF_TERM mjb_nif_features(ErlNifEnv *env, int argc, const ERL_NIF_TER
     return list;
 }
 
+// Character data. These take a codepoint and return integers for the C enums; the Elixir side
+// turns them into atoms with the generated tables of lib/mojibake/unicode_data.ex.
+
+static bool mjb_nif_get_codepoint(ErlNifEnv *env, ERL_NIF_TERM term, mjb_codepoint *codepoint) {
+    unsigned int value = 0;
+
+    if(!enif_get_uint(env, term, &value) || value > MJB_CODEPOINT_MAX) {
+        return false;
+    }
+
+    *codepoint = (mjb_codepoint)value;
+
+    return true;
+}
+
+// A NUL-terminated C string, or "" for NULL, as a binary.
+static ERL_NIF_TERM mjb_nif_string(ErlNifEnv *env, const char *string, size_t max_length) {
+    size_t length = 0;
+
+    while(string != NULL && length < max_length && string[length] != '\0') {
+        ++length;
+    }
+
+    ERL_NIF_TERM term;
+    unsigned char *data = enif_make_new_binary(env, length, &term);
+
+    if(data != NULL && length != 0) {
+        memcpy(data, string, length);
+    }
+
+    return term;
+}
+
+// codepoint_info(codepoint) -> {:ok, {name, category, combining_class, bidi_class,
+// decomposition, decimal, digit, numeric, mirrored, uppercase, lowercase, titlecase}}
+static ERL_NIF_TERM mjb_nif_codepoint_info(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_character character;
+    memset(&character, 0, sizeof(character));
+
+    mjb_status status = mjb_codepoint_info(codepoint, &character);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM fields[] = {
+        mjb_nif_string(env, character.name, sizeof(character.name)),
+        enif_make_int(env, (int)character.category),
+        enif_make_int(env, (int)character.combining),
+        enif_make_int(env, (int)character.bidirectional),
+        enif_make_int(env, (int)character.decomposition),
+        enif_make_int(env, character.decimal),
+        enif_make_int(env, character.digit),
+        mjb_nif_string(env, character.numeric, sizeof(character.numeric)),
+        mjb_nif_bool(character.mirrored),
+        enif_make_uint(env, character.uppercase),
+        enif_make_uint(env, character.lowercase),
+        enif_make_uint(env, character.titlecase),
+    };
+
+    return mjb_nif_ok(env, enif_make_tuple_from_array(env, fields, MJB_NIF_COUNT(fields)));
+}
+
+// numeric_value(codepoint) -> {:ok, {decimal, digit, numeric}}. decimal and digit are -1 and
+// numeric is "" when the codepoint has no such value.
+static ERL_NIF_TERM mjb_nif_numeric_value(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_numeric_value value;
+    memset(&value, 0, sizeof(value));
+
+    mjb_status status = mjb_codepoint_numeric_value(codepoint, &value);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env,
+        enif_make_tuple3(env, enif_make_int(env, value.decimal), enif_make_int(env, value.digit),
+            mjb_nif_string(env, value.numeric, sizeof(value.numeric))));
+}
+
+// property(codepoint, property, binary) -> {:ok, boolean} for a binary property, {:ok, value} for
+// an enumerated one, or {:error, :not_found} when the codepoint has no stored value.
+static ERL_NIF_TERM mjb_nif_property(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+    int property = 0;
+
+    if(argc != 3 || !mjb_nif_get_codepoint(env, argv[0], &codepoint) ||
+        !enif_get_int(env, argv[1], &property) || property < 0) {
+        return enif_make_badarg(env);
+    }
+
+    if(enif_is_identical(argv[2], mjb_nif_atoms.true_)) {
+        bool value = false;
+        mjb_status status = mjb_codepoint_property_binary(codepoint, (mjb_property)property,
+            &value);
+
+        if(status != MJB_STATUS_OK) {
+            return mjb_nif_error(env, status, NULL);
+        }
+
+        return mjb_nif_ok(env, mjb_nif_bool(value));
+    }
+
+    int32_t value = 0;
+    mjb_status status = mjb_codepoint_property_int(codepoint, (mjb_property)property, &value);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env, enif_make_int(env, (int)value));
+}
+
+// block(codepoint) -> {:ok, mjb_block} or {:error, :not_found}
+static ERL_NIF_TERM mjb_nif_block(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_block_info block;
+    memset(&block, 0, sizeof(block));
+
+    mjb_status status = mjb_codepoint_block(codepoint, &block);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env, enif_make_int(env, (int)block.id));
+}
+
+// script(codepoint) -> mjb_script
+static ERL_NIF_TERM mjb_nif_script(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    return enif_make_int(env, (int)mjb_codepoint_script(codepoint));
+}
+
+// script_extensions(codepoint) -> {:ok, [mjb_script]}
+static ERL_NIF_TERM mjb_nif_script_extensions(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    // Every Script_Extensions set fits; the second call reports a larger one as an error.
+    mjb_script scripts[MJB_SC_COUNT];
+    size_t count = MJB_NIF_COUNT(scripts);
+    mjb_status status = mjb_codepoint_script_extensions(codepoint, scripts, &count);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM list = enif_make_list(env, 0);
+
+    for(size_t i = count; i > 0; --i) {
+        list = enif_make_list_cell(env, enif_make_int(env, (int)scripts[i - 1]), list);
+    }
+
+    return mjb_nif_ok(env, list);
+}
+
+// emoji_properties(codepoint) -> {:ok, {emoji, presentation, modifier, modifier_base, component,
+// extended_pictographic}}
+static ERL_NIF_TERM mjb_nif_emoji_properties(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_emoji_properties emoji;
+    memset(&emoji, 0, sizeof(emoji));
+
+    mjb_status status = mjb_codepoint_emoji_properties(codepoint, &emoji);
+
+    if(status != MJB_STATUS_OK && status != MJB_STATUS_NOT_FOUND) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM fields[] = {
+        mjb_nif_bool(emoji.emoji),
+        mjb_nif_bool(emoji.presentation),
+        mjb_nif_bool(emoji.modifier),
+        mjb_nif_bool(emoji.modifier_base),
+        mjb_nif_bool(emoji.component),
+        mjb_nif_bool(emoji.extended_pictographic),
+    };
+
+    return mjb_nif_ok(env, enif_make_tuple_from_array(env, fields, MJB_NIF_COUNT(fields)));
+}
+
+// codepoint_is(codepoint, kind) -> boolean
+static ERL_NIF_TERM mjb_nif_codepoint_is(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 2 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    static const struct {
+        const char *name;
+        bool (*predicate)(mjb_codepoint);
+    } predicates[] = {
+        { "graphic", mjb_codepoint_is_graphic },
+        { "combining", mjb_codepoint_is_combining },
+        { "cjk_ideograph", mjb_codepoint_is_cjk_ideograph },
+        { "cjk_extension_ideograph", mjb_codepoint_is_cjk_extension_ideograph },
+        { "hangul_leading_jamo", mjb_codepoint_is_hangul_leading_jamo },
+        { "hangul_vowel_jamo", mjb_codepoint_is_hangul_vowel_jamo },
+        { "hangul_trailing_jamo", mjb_codepoint_is_hangul_trailing_jamo },
+        { "hangul_jamo", mjb_codepoint_is_hangul_jamo },
+        { "hangul_syllable", mjb_codepoint_is_hangul_syllable },
+    };
+
+    for(size_t i = 0; i < MJB_NIF_COUNT(predicates); ++i) {
+        if(mjb_nif_atom_is(env, argv[1], predicates[i].name)) {
+            return mjb_nif_bool(predicates[i].predicate(codepoint));
+        }
+    }
+
+    return enif_make_badarg(env);
+}
+
+// plane_name(plane, abbreviation) -> binary, or nil for a plane with no name
+static ERL_NIF_TERM mjb_nif_plane_name(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    int plane = 0;
+
+    if(argc != 2 || !enif_get_int(env, argv[0], &plane) || plane < 0 || plane >= MJB_PLANE_NUM) {
+        return enif_make_badarg(env);
+    }
+
+    const char *name = mjb_plane_name((mjb_plane)plane,
+        enif_is_identical(argv[1], mjb_nif_atoms.true_));
+
+    return name == NULL ? mjb_nif_atoms.nil : mjb_nif_static_string(env, name);
+}
+
+// emoji_sequence(text) -> {:ok, {type, qualification, codepoint_count}} or {:error, :not_found}
+static ERL_NIF_TERM mjb_nif_emoji_sequence(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+
+    if(argc != 1 || !mjb_nif_get_text(env, argv[0], &binary, &text)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_emoji_sequence emoji;
+    memset(&emoji, 0, sizeof(emoji));
+
+    if(binary.size == 0) {
+        return mjb_nif_error(env, MJB_STATUS_NOT_FOUND, NULL);
+    }
+
+    mjb_status status = mjb_emoji_sequence_info(&text, &emoji);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env,
+        enif_make_tuple3(env, enif_make_int(env, (int)emoji.type),
+            enif_make_int(env, (int)emoji.qualification),
+            enif_make_uint64(env, (ErlNifUInt64)emoji.codepoint_count)));
+}
+
+// hangul_syllable_name(codepoint) -> {:ok, name} or {:error, :not_found}
+static ERL_NIF_TERM mjb_nif_hangul_syllable_name(ErlNifEnv *env, int argc,
+    const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    char name[64];
+    name[0] = '\0';
+
+    mjb_status status = mjb_hangul_syllable_name(codepoint, name, sizeof(name));
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env, mjb_nif_string(env, name, sizeof(name)));
+}
+
+// hangul_decompose(syllable) -> {:ok, {leading, vowel, trailing}}, trailing 0 for none
+static ERL_NIF_TERM mjb_nif_hangul_decompose(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint codepoint;
+
+    if(argc != 1 || !mjb_nif_get_codepoint(env, argv[0], &codepoint)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_codepoint jamo[3] = { 0, 0, 0 };
+    mjb_status status = mjb_hangul_syllable_decompose(codepoint, jamo);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env,
+        enif_make_tuple3(env, enif_make_uint(env, jamo[0]), enif_make_uint(env, jamo[1]),
+            enif_make_uint(env, jamo[2])));
+}
+
+// hangul_compose(leading, vowel, trailing) -> {:ok, syllable}, trailing 0 for none
+static ERL_NIF_TERM mjb_nif_hangul_compose(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    mjb_codepoint leading;
+    mjb_codepoint vowel;
+    mjb_codepoint trailing;
+
+    if(argc != 3 || !mjb_nif_get_codepoint(env, argv[0], &leading) ||
+        !mjb_nif_get_codepoint(env, argv[1], &vowel) ||
+        !mjb_nif_get_codepoint(env, argv[2], &trailing)) {
+        return enif_make_badarg(env);
+    }
+
+    mjb_codepoint syllable = 0;
+    mjb_status status = mjb_hangul_syllable_compose(leading, vowel, trailing, &syllable);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    return mjb_nif_ok(env, enif_make_uint(env, syllable));
+}
+
+// limits() -> the sizes of the C enums, to check the generated Elixir tables against.
+static ERL_NIF_TERM mjb_nif_limits(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    (void)argc;
+    (void)argv;
+
+    ERL_NIF_TERM keys[] = {
+        enif_make_atom(env, "categories"),
+        enif_make_atom(env, "blocks"),
+        enif_make_atom(env, "scripts"),
+        enif_make_atom(env, "properties"),
+        enif_make_atom(env, "bidi_classes"),
+        enif_make_atom(env, "east_asian_widths"),
+    };
+    ERL_NIF_TERM values[] = {
+        enif_make_int(env, MJB_CATEGORY_COUNT),
+        enif_make_int(env, MJB_BLOCK_NUM),
+        enif_make_int(env, MJB_SC_COUNT),
+        enif_make_int(env, MJB_PR_COUNT),
+        enif_make_int(env, MJB_BIDI_CLASS_COUNT),
+        enif_make_int(env, MJB_EAW_COUNT),
+    };
+    ERL_NIF_TERM map;
+
+    if(!enif_make_map_from_arrays(env, keys, values, MJB_NIF_COUNT(keys), &map)) {
+        return enif_make_badarg(env);
+    }
+
+    return map;
+}
+
 // Loading
 
 static int mjb_nif_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info) {
@@ -800,6 +1184,20 @@ static ErlNifFunc mjb_nif_funcs[] = {
     { "version", 0, mjb_nif_version, 0 },
     { "unicode_version", 0, mjb_nif_unicode_version, 0 },
     { "features", 0, mjb_nif_features, 0 },
+    { "codepoint_info", 1, mjb_nif_codepoint_info, 0 },
+    { "numeric_value", 1, mjb_nif_numeric_value, 0 },
+    { "property", 3, mjb_nif_property, 0 },
+    { "block", 1, mjb_nif_block, 0 },
+    { "script", 1, mjb_nif_script, 0 },
+    { "script_extensions", 1, mjb_nif_script_extensions, 0 },
+    { "emoji_properties", 1, mjb_nif_emoji_properties, 0 },
+    { "codepoint_is", 2, mjb_nif_codepoint_is, 0 },
+    { "plane_name", 2, mjb_nif_plane_name, 0 },
+    { "emoji_sequence", 1, mjb_nif_emoji_sequence, 0 },
+    { "hangul_syllable_name", 1, mjb_nif_hangul_syllable_name, 0 },
+    { "hangul_decompose", 1, mjb_nif_hangul_decompose, 0 },
+    { "hangul_compose", 3, mjb_nif_hangul_compose, 0 },
+    { "limits", 0, mjb_nif_limits, 0 },
 };
 
 ERL_NIF_INIT(Elixir.Mojibake.Nif, mjb_nif_funcs, mjb_nif_load, NULL, mjb_nif_upgrade, NULL)

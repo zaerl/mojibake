@@ -61,6 +61,17 @@ defmodule Mojibake.MixProject do
     [
       main: "readme",
       extras: ["README.md"],
+      groups_for_modules: [
+        "Character data": [
+          Mojibake.Char,
+          Mojibake.Property,
+          Mojibake.Script,
+          Mojibake.Block,
+          Mojibake.Plane,
+          Mojibake.Emoji,
+          Mojibake.Hangul
+        ]
+      ],
       source_url: @source_url,
       source_url_pattern: "#{@source_url}/blob/main/src/elixir/%{path}#L%{line}"
     ]

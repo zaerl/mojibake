@@ -1,8 +1,8 @@
 # Mojibake for Elixir
 
 Unicode text processing for Elixir: normalization, locale-aware casing, caseless matching,
-grapheme, word, sentence, and line segmentation, and terminal width. It passes the official Unicode
-conformance tests.
+grapheme, word, sentence, and line segmentation, terminal width, and character data from the
+Unicode Character Database. It passes the official Unicode conformance tests.
 
 It wraps [Mojibake](https://github.com/zaerl/mojibake), a self-contained Unicode library written in
 C11 with no dependencies, as a NIF. The package compiles the C sources when you build it, so all
@@ -29,6 +29,12 @@ true = Mojibake.caseless_equal?("Straße", "STRASSE")
 
 6 = Mojibake.terminal_width("日本語")
 "日本" = Mojibake.truncate_to_width("日本語", 5)
+
+"GRINNING FACE" = Mojibake.Char.name(0x1F600)
+:greek = Mojibake.Char.script(?Ω)
+{1, 2} = Mojibake.Char.numeric_value(?½)
+true = Mojibake.Char.property?(?\s, :white_space)
+%{type: :flag} = Mojibake.Emoji.sequence("🇮🇹")
 ```
 
 ## What it adds to `String`
@@ -48,6 +54,10 @@ package adds:
 | Graphemes (UAX #29) | `graphemes/1`, `grapheme_count/1`, `grapheme_prefix/2` |
 | Terminal width (UAX #11) | `terminal_width/2`, `truncate_to_width/3` |
 | Malformed UTF-8 | a `:malformed` option on every transform, and errors with the byte offset |
+| Character data | `Mojibake.Char`: names, categories, combining classes, bidi classes, decomposition types, numeric values, simple case mappings, blocks, scripts and Script_Extensions, East Asian width, emoji properties, and every stored binary and enumerated property |
+| Scripts, blocks, planes, properties | `Mojibake.Script`, `Mojibake.Block`, `Mojibake.Plane`, `Mojibake.Property` |
+| Emoji sequences (UTS #51) | `Mojibake.Emoji.sequence/1`, `rgi?/1` |
+| Hangul | `Mojibake.Hangul`: composition, decomposition, syllable names |
 
 ## Design
 
@@ -61,14 +71,20 @@ package adds:
   process-global casing locale.
 - Inputs larger than 16 KiB run on a dirty CPU scheduler, so long strings do not block the normal
   schedulers.
+- Character data uses atoms made from the long UCD names, such as `:uppercase_letter`, `:latin`,
+  `:basic_latin`, and `:white_space`. The atom tables are generated from the same Unicode data as
+  the C library, so they always agree with it.
+- Codepoint functions take integers (`?A`, `0x1F600`) and raise `FunctionClauseError` for anything
+  outside 0 to 0x10FFFF.
 - The C library allocates through `enif_alloc`, so its memory shows up in the VM's allocator
   statistics.
 
 ## Optional features
 
 The C library has four optional features: `:names` (character names), `:collation`, `:idna`, and
-`:security`. They are all on by default, and `Mojibake.features/0` lists the ones compiled in. They
-are not used by the functions in this release, so you can turn them off to make the NIF smaller:
+`:security`. They are all on by default, and `Mojibake.features/0` lists the ones compiled in.
+`Mojibake.Char.name/1` needs `:names`; the other three are not used by the functions in this
+release. Turn off the ones you do not need to make the NIF smaller:
 
 ```elixir
 # config/config.exs
@@ -80,8 +96,7 @@ variable, a comma-separated list or `none`, wins over the configuration.
 
 ## Not wrapped yet
 
-- character properties, names, blocks, scripts, and numeric values
-- encodings other than UTF-8, emoji sequences, and Hangul
+- encodings other than UTF-8
 - collation, IDNA, identifiers, confusables, and BCP 47 tag parsing
 - the bidirectional algorithm
 - precompiled NIFs, and Windows
