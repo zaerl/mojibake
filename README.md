@@ -3,18 +3,11 @@
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
-**Mojibake** is a small, fast, self-contained Unicode library written in C11. It gives C, C++ and
-Rust programs normalization, case mapping, segmentation, bidirectional text, collation, IDNA, emoji,
-confusable detection, and the full Unicode Character Database, all in one source file and one
-header, with zero dependencies. It is released under the MIT License.
-
-[Live demo and API reference](https://mojibake.zaerl.com) ·
-[API.md](https://github.com/zaerl/mojibake/blob/main/API.md) ·
-[C++ wrapper](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md) ·
-[Rust wrapper](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md) ·
-[Elixir wrapper](https://github.com/zaerl/mojibake/blob/main/src/elixir/README.md) ·
-[Changelog](https://github.com/zaerl/mojibake/blob/main/CHANGELOG.md) ·
-[Roadmap](https://github.com/zaerl/mojibake/blob/main/ROADMAP.md)
+**Mojibake** is a small, fast, self-contained Unicode library written in C11. It gives C, C++, Rust
+and Elixir programs normalization, case mapping, segmentation, bidirectional text, collation, IDNA,
+emoji, confusable detection, and the full Unicode Character Database, all in one source file and one
+header, with zero dependencies. It is released under the MIT License. Live demo and API reference
+at https://mojibake.zaerl.com.
 
 ## Why Mojibake
 
@@ -31,23 +24,13 @@ header, with zero dependencies. It is released under the MIT License.
 - **Portable.** Builds as C11 and C++17 on Linux, macOS, Windows, the BSDs, Haiku, Android, and
   WebAssembly.
 
-## Status
-
-Mojibake covers the Unicode algorithms listed below and is close to feature-complete for its
-scope. It is still pre-1.0: the C API is stable in practice, but a minor release may make breaking
-changes, which are always listed in the
-[changelog](https://github.com/zaerl/mojibake/blob/main/CHANGELOG.md). Streaming APIs, configurable
-collators, and the remaining UTS #39 identifier checks are planned; see the
-[roadmap](https://github.com/zaerl/mojibake/blob/main/ROADMAP.md).
-
 ## Quick start
 
-You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
+In C, you don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
 C/C++ project. Download it here [mojibake-amalgamation-080.zip](https://github.com/zaerl/mojibake/releases/download/v0.8.0/mojibake-amalgamation-080.zip).
 
 ```c
 #include <stdio.h>
-
 #include "mojibake.h"
 
 int main(void) {
@@ -105,8 +88,6 @@ A few conventions apply across the whole API:
   `MJB_NUL_TERMINATED` to scan for a terminator sized for the declared encoding.
 - Allocating functions fill an `mjb_result` that you release with `mjb_result_free`. Their `_into`
   variants write into a buffer you own instead, and can measure the required size first.
-
-[API.md](https://github.com/zaerl/mojibake/blob/main/API.md) explains these rules in depth.
 
 <!-- site-skip -->
 Every function can also be tried in the browser on the [demo site](https://mojibake.zaerl.com),
@@ -184,18 +165,6 @@ which runs the library compiled to WebAssembly.
   untrusted byte input
 - **Sanitized**: the test suite runs clean under AddressSanitizer and UndefinedBehaviorSanitizer
 
-## Unicode conformance
-
-Unicode references in Mojibake are to the Unicode Standard, Version 18.0.0, and the Unicode
-Character Database 18.0.0. Each advertised algorithm is checked against the official Unicode test
-data where it exists; the full inventory is in
-[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md).
-
-Tailoring: `mjb_map_case` and `mjb_map_case_into` take a per-call `locale`. `MJB_LOCALE_NOT_SET`
-selects the default Unicode mappings; Turkish and Azerbaijani tailor dotted-I casing and Turkic
-case folding, and Lithuanian tailors dot-above casing. No other algorithm is locale-tailored:
-collation uses the untailored DUCET.
-
 ## Using Mojibake
 
 ### Amalgamation
@@ -229,7 +198,7 @@ Mojibake is embedded. They can be controlled with `MJB_BUILD_TESTS`, `MJB_BUILD_
 library. To install Mojibake as a package for `find_package(Mojibake CONFIG REQUIRED)`, see
 [INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md).
 
-### C++20 wrapper
+### C++
 
 The header-only wrapper `src/cpp/mojibake.hpp` adds string and view types, RAII ownership, standard
 ranges for segments and codepoints, and `std::system_error` exceptions:
@@ -244,10 +213,8 @@ See [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/READ
 
 ### Rust crates
 
-`src/rust` holds two crates. `mojibake-sys` compiles the C library with the `cc` crate (no CMake
-needed) and declares the raw FFI. `mojibake-rs` is the safe API, built mostly from extension traits
-on `str` and `char`. It is published as `mojibake-rs` because the `mojibake` name is taken on
-crates.io, but its library is still imported as `mojibake`:
+`src/rust` holds two crates. `mojibake-sys` compiles the C library with the `cc` crate and declares
+the raw FFI. `mojibake-rs` is the safe API, built mostly from extension traits on `str` and `char`:
 
 ```toml
 [dependencies]
@@ -267,18 +234,15 @@ let half = '½'.numeric_value().unwrap().to_string(); // "1/2"
 String transforms return `Cow<str>` and borrow the input when it is already in the requested
 form, casing takes an explicit `Locale` instead of the process-global one, and errors are a typed
 `mojibake::Error`. The `names`, `collation`, `idna`, and `security` Cargo features are on by
-default and map to the `MJB_FEATURE_*` options below; turn them off with
-`default-features = false`. Run `make test-rust` to test the crates. See
+default and map to the `MJB_FEATURE_*` options below; turn them off with `default-features = false`.
+
+Run `make test-rust` to test the crates. See
 [src/rust/README.md](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md) for the full
 API and design.
 
 ### Elixir package
 
-`src/elixir` is a Mix project that compiles the C library into a NIF. It covers normalization,
-locale-aware casing, caseless matching, segmentation, line breaking, terminal width, character
-data (properties, names, scripts, blocks, emoji, and Hangul), collation, IDNA, confusables,
-identifiers, encodings, BCP 47 tags, and bidirectional text, on Linux, macOS, and Windows.
-It is not on Hex yet; depend on a checkout with `{:mojibake, path: "path/to/mojibake/src/elixir"}`:
+`src/elixir` is a Mix project that compiles the C library into a NIF:
 
 ```elixir
 {:ok, "İSTANBUL"} = Mojibake.upcase("istanbul", locale: "tr")
@@ -294,14 +258,6 @@ API and design.
 
 `src/wasm` packages the library compiled with Emscripten behind a typed TypeScript API for Node and
 browsers. It powers the [demo site](https://mojibake.zaerl.com).
-
-### Other languages
-
-Mojibake has a plain C ABI, so any language with a C FFI can use it. The
-[examples](https://github.com/zaerl/mojibake/tree/main/examples) directory has small programs in C,
-C++, Elixir, Python, Rust, and Zig. The Rust example uses the safe `mojibake` crate; build it with
-`make -C examples example-rust`. The Elixir example is a script that uses the package in
-`src/elixir`; run it with `make -C examples example-elixir`.
 
 ### CLI
 
@@ -322,10 +278,9 @@ Run `mojibake --help` for the full list of commands.
 
 ## Build-time features
 
-Mojibake can compile out optional implementations and tables to reduce binary size. Features
-default to enabled. CMake and the root Makefiles use the boolean values `ON` and `OFF`; when
-invoking a C or C++ compiler directly, define the corresponding preprocessor macros as numeric
-`1` or `0`.
+There are optional implementations and tables you can remove to reduce binary size. CMake and the
+root Makefiles use the boolean values `ON` and `OFF`; when invoking a C or C++ compiler directly,
+define the corresponding preprocessor macros as numeric `1` or `0`.
 
 - `MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
   `mjb_codepoint_info(...)` to fill `mjb_character.name`. When disabled, the tables are not
@@ -397,15 +352,15 @@ Continuous integration covers:
 ## Documentation
 
 - [API.md](https://github.com/zaerl/mojibake/blob/main/API.md): concepts, conventions, and every
-  public function
+  public C function
 - [mojibake.zaerl.com](https://mojibake.zaerl.com): the same reference with live WASM examples
-- [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md): the C++20
-  wrapper
+- [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md): the C++ API
 - [src/rust/README.md](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md): the Rust
   crates
 - [src/elixir/README.md](https://github.com/zaerl/mojibake/blob/main/src/elixir/README.md): the
   Elixir package
-- [INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md): installing as a CMake package
+- [INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md): installing as a CMake
+  package
 - [TESTS.md](https://github.com/zaerl/mojibake/blob/main/TESTS.md): test coverage and the Unicode
   test files used
 - [CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md):
@@ -418,16 +373,14 @@ Bug reports and pull requests are welcome. See
 instructions, and [SECURITY.md](https://github.com/zaerl/mojibake/blob/main/SECURITY.md) to report
 a vulnerability.
 
+## Unicode conformance
+
+Unicode references in Mojibake are to the Unicode Standard, Version 18.0.0, and the Unicode
+Character Database 18.0.0. Each advertised algorithm is checked against the official Unicode test
+data where it exists; the full inventory is in
+[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md).
+
 ## License
 
 Mojibake is released under the MIT License (see
 [LICENSE](https://github.com/zaerl/mojibake/blob/main/LICENSE)).
-
-## Thanks
-
-Mojibake is built using the work of extraordinary individuals and teams.
-
-1. Unicode Character Database - Copyright © 1991-2026 Unicode, Inc.
-(see [license.txt](https://www.unicode.org/license.txt))
-2. Unicode CLDR Project - Copyright © 2004-2026 Unicode, Inc.
-(see [LICENSE](https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/LICENSE))
