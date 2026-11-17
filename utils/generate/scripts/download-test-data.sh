@@ -7,6 +7,7 @@
 # Download only the Unicode data files read by the test suite. Unlike generate.sh, this does
 # not fetch the full UCD or run the table generator, so it is suitable for CI.
 # See the main Dockerfile and the .github/workflows/test.yml for usage.
+# download-test-data.bat is the Windows counterpart; keep the two file lists in sync.
 
 set -e
 

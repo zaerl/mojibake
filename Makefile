@@ -170,7 +170,7 @@ watch-api: sync-api-wasm
 wasm: sync-api-wasm generate-site
 
 # Generate TESTS.md file
-coverage:
+coverage: test-data
 	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@cd ./utils/generate && npm run coverage -- \
@@ -211,6 +211,13 @@ configure-tidy: $(UNICODE_DATA)
 tidy: configure-tidy
 	@cmake --build $(TIDY_BUILD_DIR) --config Release --parallel
 
+.PHONY: test-data
+
+# Download any missing Unicode test data into unicode-data/. Files already present are kept, so this
+# needs no network access once the data is there.
+test-data:
+	@./utils/generate/scripts/download-test-data.sh
+
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
 	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
 	test-ubsan test-no-names test-no-collation test-no-idna test-no-security test-wasm \
@@ -218,7 +225,7 @@ tidy: configure-tidy
 	package-elixir test-docker
 
 # Run tests
-test: $(UNICODE_DATA)
+test: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_BUILD_DIR)/tests/mojibake-test $(ARGS)
@@ -237,19 +244,19 @@ test-no-security:
 	$(MAKE) test TEST_BUILD_DIR=$(TEST_NO_SECURITY_BUILD_DIR) FEATURE_SECURITY=OFF ARGS="$(ARGS)"
 
 # Run tests with C++ compiler
-test-cpp: $(UNICODE_DATA)
+test-cpp: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_CPP_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run optimized C tests
-test-release: $(UNICODE_DATA)
+test-release: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_RELEASE_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(NATIVE_CMAKE_FLAGS)
 	@cmake --build $(TEST_RELEASE_BUILD_DIR) --config Release
 	$(TEST_RELEASE_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run optimized C++ tests
-test-cpp-release: $(UNICODE_DATA)
+test-cpp-release: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_CPP_RELEASE_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(CPP_CMAKE_FLAGS)
 	@cmake --build $(TEST_CPP_RELEASE_BUILD_DIR) --config Release
 	$(TEST_CPP_RELEASE_BUILD_DIR)/tests/mojibake-test $(ARGS)
@@ -270,13 +277,13 @@ test-wasm: sync-api-wasm
 	@cd ./src/api && npm run test
 
 # Run tests with AddressSanitizer
-test-asan: $(UNICODE_DATA)
+test-asan: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_ASAN_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(ASAN_CMAKE_FLAGS)
 	@cmake --build $(TEST_ASAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_ASAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests with UndefinedBehaviorSanitizer
-test-ubsan: $(UNICODE_DATA)
+test-ubsan: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_UBSAN_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(UBSAN_CMAKE_FLAGS)
 	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_UBSAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
@@ -313,13 +320,13 @@ test-all:
 	$(MAKE) test-sanitizers
 
 # Run tests using CTest
-ctest: $(UNICODE_DATA)
+ctest: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	cd $(TEST_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
 # Run C++ tests using CTest
-ctest-cpp: $(UNICODE_DATA)
+ctest-cpp: $(UNICODE_DATA) test-data
 	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
@@ -358,7 +365,7 @@ package-rust: vendor-rust
 # warning-free Elixir and NIF compilation, and warning-free docs. Needs Elixir and Erlang/OTP.
 ELIXIR_CFLAGS ?= -O2 -Werror
 
-test-elixir:
+test-elixir: test-data
 	cd src/elixir && mix deps.get
 	cd src/elixir && mix format --check-formatted
 	cd src/elixir && CFLAGS="$(ELIXIR_CFLAGS)" mix test --warnings-as-errors $(ARGS)
@@ -475,6 +482,7 @@ help:
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-cpp-minimal        - Build and run C++ tests without optional features"
 	@echo "  test-cpp-release        - Build and run optimized C++ tests"
+	@echo "  test-data               - Download any missing Unicode test data"
 	@echo "  test-docker             - Build and run tests in Docker container"
 	@echo "  test-features           - Build and run optional-feature configurations"
 	@echo "  test-minimal            - Build and run tests without optional features"
