@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Attractor to 1.1.0
 
 ### Fixed
+- `mjb_codepoint_info` returns a record for surrogates (U+D800 to U+DFFF, category Cs) and
+  private-use characters (U+E000 to U+F8FF, U+F0000 to U+FFFFD, and U+100000 to U+10FFFD,
+  category Co) instead of `MJB_STATUS_NOT_FOUND`, with no name and default properties as in
+  UnicodeData.txt. As a result `mjb_for_each_codepoint`, `mjb_filter`, and the CLI `char` and
+  `codepoint` commands no longer drop private-use characters
 - `MJB_FILTER_LIMIT_COMBINING` no longer restarts its count at a Default_Ignorable_Code_Point
   character, so inserting U+200D ZERO WIDTH JOINER between runs of marks cannot stack more than
   `MJB_FILTER_MAX_COMBINING_MARKS` marks on one letter

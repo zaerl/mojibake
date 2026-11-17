@@ -254,10 +254,63 @@ ATT_TEST(codepoint) {
     ATT_ASSERT_STATUS(mjb_codepoint_block(0x10C0, &block), MJB_STATUS_OK, "Georgian block");
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_GEORGIAN, "Georgian block");
 
-    ATT_ASSERT_STATUS(mjb_codepoint_info(0xF0000 + 3, &character), MJB_STATUS_NOT_FOUND,
-        "Supplementary Private Use Area-A block");
+    // Surrogates and private-use characters are <..., First>/<..., Last> ranges in UnicodeData.txt
+    static const struct {
+        mjb_codepoint codepoint;
+        mjb_category category;
+        const char *description;
+    } range_characters[] = {
+        { 0xD800, MJB_CATEGORY_CS, "First high surrogate" },
+        { 0xDB7F, MJB_CATEGORY_CS, "Last high surrogate" },
+        { 0xDB80, MJB_CATEGORY_CS, "First high private use surrogate" },
+        { 0xDC00, MJB_CATEGORY_CS, "First low surrogate" },
+        { 0xDFFF, MJB_CATEGORY_CS, "Last low surrogate" },
+        { 0xE000, MJB_CATEGORY_CO, "First private use" },
+        { 0xF8FF, MJB_CATEGORY_CO, "Last private use" },
+        { 0xF0000, MJB_CATEGORY_CO, "First supplementary private use A" },
+        { 0xF0000 + 3, MJB_CATEGORY_CO, "Supplementary private use A" },
+        { 0xFFFFD, MJB_CATEGORY_CO, "Last supplementary private use A" },
+        { 0x100000, MJB_CATEGORY_CO, "First supplementary private use B" },
+        { 0x10FFFD, MJB_CATEGORY_CO, "Last supplementary private use B" },
+    };
+
+    for(size_t i = 0; i < sizeof(range_characters) / sizeof(range_characters[0]); ++i) {
+        mjb_codepoint codepoint = range_characters[i].codepoint;
+        const char *description = range_characters[i].description;
+
+        memset(&character, 0xAA, sizeof(character));
+        ATT_ASSERT_STATUS(mjb_codepoint_info(codepoint, &character), MJB_STATUS_OK, description);
+        ATT_ASSERT(character.codepoint, codepoint, description);
+        ATT_ASSERT((unsigned int)character.category, (unsigned int)range_characters[i].category,
+            description);
+        ATT_ASSERT_CHARACTER_NAME(codepoint, "", description);
+        ATT_ASSERT((unsigned int)character.combining, (unsigned int)MJB_CCC_NOT_REORDERED,
+            description);
+        ATT_ASSERT((unsigned int)character.bidirectional, (unsigned int)MJB_PR_BIDI_CLASS_L,
+            description);
+        ATT_ASSERT((unsigned int)character.decomposition, (unsigned int)MJB_DECOMPOSITION_NONE,
+            description);
+        ATT_ASSERT(character.decimal == MJB_NUMBER_NOT_VALID, true, description);
+        ATT_ASSERT(character.digit == MJB_NUMBER_NOT_VALID, true, description);
+        ATT_ASSERT((const char *)character.numeric, (const char *)"", description);
+        ATT_ASSERT(character.mirrored, false, description);
+        ATT_ASSERT(character.uppercase, 0, description);
+        ATT_ASSERT(character.lowercase, 0, description);
+        ATT_ASSERT(character.titlecase, 0, description);
+        ATT_ASSERT(mjb_codepoint_is_graphic(codepoint), false, description);
+    }
+
+    // Neighbours of the ranges keep their own data
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0xD7FF, &character), MJB_STATUS_NOT_FOUND,
+        "Unassigned before surrogates");
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0xF900, &character), MJB_STATUS_OK,
+        "Assigned after private use");
+    ATT_ASSERT((unsigned int)character.category, (unsigned int)MJB_CATEGORY_LO,
+        "Assigned after private use category");
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0xFFFFE, &character), MJB_STATUS_INVALID_ARGUMENT,
+        "Noncharacter after supplementary private use A");
     ATT_ASSERT_STATUS(mjb_codepoint_info(MJB_CODEPOINT_MAX - 1, &character),
-        MJB_STATUS_INVALID_ARGUMENT, "Supplementary Private Use Area-B block");
+        MJB_STATUS_INVALID_ARGUMENT, "Noncharacter after supplementary private use B");
 
     ATT_ASSERT(mjb_codepoint_is_graphic(0), false, "NULL: not graphic");
     ATT_ASSERT(mjb_codepoint_is_graphic('#'), true, "#: graphic");
