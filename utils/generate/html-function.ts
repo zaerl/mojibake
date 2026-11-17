@@ -144,21 +144,21 @@ export class CFunction implements MojibakeFunction {
 
   private formatLine(line: string, nl = '\n', maxLine: number = 100): string {
     const words = line.split(/\s+/);
-    let length = words.length;
-    let lineLength = 0;
     let nlLength = nl === '\n' ? 0 : nl.length;
     let ret = '';
+    let i = 0;
+    let addedNl = false;
 
     for(const word of words) {
-      if(lineLength + word.length + 1 > maxLine) {
+      if(i + word.length + 1 > maxLine) {
         ret += nl;
-        lineLength = nlLength;
+        i = nlLength;
+        addedNl = true;
       }
 
-      ret += `${word}${length > 1 ? ' ' : ''}`;
-      lineLength += word.length + 1;
-
-      --length;
+      ret += `${i > 0 && !addedNl ? ' ' : ''}${word}`;
+      i += word.length + 1;
+      addedNl = false;
     }
 
     return ret;
