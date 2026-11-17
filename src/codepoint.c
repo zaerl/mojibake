@@ -101,6 +101,14 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 #if MJB_FEATURE_CHARACTER_NAMES
         format = "KHITAN SMALL SCRIPT CHARACTER-%X";
 #endif
+    } else if(codepoint >= MJB_JURCHEN_CHARACTER_START && codepoint <= MJB_JURCHEN_CHARACTER_END) {
+#if MJB_FEATURE_CHARACTER_NAMES
+        format = "JURCHEN CHARACTER-%X";
+#endif
+    } else if(codepoint >= MJB_SEAL_CHARACTER_START && codepoint <= MJB_SEAL_CHARACTER_END) {
+#if MJB_FEATURE_CHARACTER_NAMES
+        format = "SMALL SEAL CHARACTER-%X";
+#endif
     } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
         if(codepoint >= 0x143FF) {
             // Last valid is EGYPTIAN HIEROGLYPH-143FA
