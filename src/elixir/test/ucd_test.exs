@@ -161,6 +161,24 @@ defmodule Mojibake.UCDTest do
     assert Enum.take(failures, 10) == []
   end
 
+  # Unicode 18 ranges that mjb_codepoint_info does not cover yet: the MJB_TANGUT_* limits in
+  # src/mojibake.h predate the extended Tangut ranges, and Jurchen and Seal are new. Remove this
+  # when the C library covers them.
+  @range_gaps [0x187F8..0x187FF, 0x18D1F..0x18D20, 0x18E00..0x19191, 0x3D000..0x3FC3F]
+
+  test "UnicodeData.txt ranges" do
+    failures =
+      for [code, name, category | _] <- Enum.to_list(records("UCD/UnicodeData.txt")),
+          String.ends_with?(name, ", First>") or String.ends_with?(name, ", Last>"),
+          codepoint = String.to_integer(code, 16),
+          not noncharacter?(codepoint),
+          not Enum.any?(@range_gaps, &(codepoint in &1)),
+          Char.category_abbreviation(codepoint) != category or Char.info(codepoint) == nil,
+          do: {code, category}
+
+    assert failures == []
+  end
+
   defp numeric_string(nil), do: ""
   defp numeric_string({numerator, denominator}), do: "#{numerator}/#{denominator}"
   defp numeric_string(integer), do: Integer.to_string(integer)

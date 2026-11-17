@@ -126,8 +126,7 @@ defmodule Mojibake.Char do
   @doc """
   Return everything `UnicodeData.txt` says about `codepoint`, or `nil` if it is unassigned.
 
-  Like the C library, `info/1` also returns `nil` for surrogates, private-use codepoints, and
-  noncharacters; `category/1` still reports `:surrogate` and `:private_use` for them.
+  Noncharacters, such as U+FFFF, are `nil` too.
 
   Codepoints whose data `UnicodeData.txt` gives as a range, such as CJK ideographs and Hangul
   syllables, have their derived names.
@@ -208,7 +207,7 @@ defmodule Mojibake.Char do
   def category(codepoint) when is_codepoint(codepoint) do
     case Nif.codepoint_info(codepoint) do
       {:ok, info} -> @categories |> elem(elem(info, 1)) |> elem(0)
-      {:error, _} -> fallback_category(codepoint)
+      {:error, _} -> :unassigned
     end
   end
 
@@ -225,7 +224,7 @@ defmodule Mojibake.Char do
   def category_abbreviation(codepoint) when is_codepoint(codepoint) do
     case Nif.codepoint_info(codepoint) do
       {:ok, info} -> @categories |> elem(elem(info, 1)) |> elem(1)
-      {:error, _} -> codepoint |> fallback_category() |> abbreviation()
+      {:error, _} -> "Cn"
     end
   end
 
@@ -646,20 +645,6 @@ defmodule Mojibake.Char do
       titlecase: or_self(title, codepoint)
     }
   end
-
-  # The C library has no data for these ranges, which the Unicode stability policy fixes.
-  defp fallback_category(codepoint) when codepoint in 0xD800..0xDFFF, do: :surrogate
-
-  defp fallback_category(codepoint)
-       when codepoint in 0xE000..0xF8FF or codepoint in 0xF0000..0xFFFFD or
-              codepoint in 0x100000..0x10FFFD,
-       do: :private_use
-
-  defp fallback_category(_codepoint), do: :unassigned
-
-  defp abbreviation(:surrogate), do: "Cs"
-  defp abbreviation(:private_use), do: "Co"
-  defp abbreviation(:unassigned), do: "Cn"
 
   defp mapping(codepoint, field) do
     case Nif.codepoint_info(codepoint) do

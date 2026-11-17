@@ -50,9 +50,8 @@ defmodule Mojibake.CharTest do
     test "ranges in UnicodeData.txt" do
       assert %Char{category: :other_letter, bidi_class: :left_to_right} = Char.info(0x4E00)
       assert %Char{category: :other_letter} = Char.info(0xAC00)
-      # The C library has no UnicodeData.txt record for these.
-      assert Char.info(0xE000) == nil
-      assert Char.info(0xD800) == nil
+      assert %Char{category: :private_use, bidi_class: :left_to_right} = Char.info(0xE000)
+      assert %Char{category: :surrogate} = Char.info(0xD800)
       assert Char.category(0xE000) == :private_use
       assert Char.category(0x10FFFD) == :private_use
       assert Char.category_abbreviation(0xDFFF) == "Cs"
