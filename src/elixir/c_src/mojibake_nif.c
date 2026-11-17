@@ -1470,6 +1470,349 @@ static ERL_NIF_TERM mjb_nif_locale_parse(ErlNifEnv *env, int argc, const ERL_NIF
     return mjb_nif_ok(env, enif_make_tuple_from_array(env, fields, MJB_NIF_COUNT(fields)));
 }
 
+// Bidirectional text
+
+// A paragraph resolved by mjb_bidi_resolve, owned by a resource term. The functions below only
+// read it, so processes can share it.
+typedef struct mjb_nif_bidi {
+    mjb_bidi_paragraph paragraph;
+} mjb_nif_bidi;
+
+static ErlNifResourceType *mjb_nif_bidi_type = NULL;
+
+static void mjb_nif_bidi_destructor(ErlNifEnv *env, void *object) {
+    (void)env;
+
+    mjb_bidi_paragraph_free(&((mjb_nif_bidi *)object)->paragraph);
+}
+
+static bool mjb_nif_get_bidi(ErlNifEnv *env, ERL_NIF_TERM term,
+    const mjb_bidi_paragraph **paragraph) {
+    void *object = NULL;
+
+    if(!enif_get_resource(env, term, mjb_nif_bidi_type, &object)) {
+        return false;
+    }
+
+    *paragraph = &((const mjb_nif_bidi *)object)->paragraph;
+
+    return true;
+}
+
+// The paragraph in argv[0] and the line [argv[1], argv[2]) of its positions.
+static bool mjb_nif_get_bidi_line(ErlNifEnv *env, const ERL_NIF_TERM argv[],
+    const mjb_bidi_paragraph **paragraph, size_t *start, size_t *end) {
+    return mjb_nif_get_bidi(env, argv[0], paragraph) && mjb_nif_get_size(env, argv[1], start) &&
+        mjb_nif_get_size(env, argv[2], end) && *start <= *end && *end <= (*paragraph)->count;
+}
+
+static bool mjb_nif_get_direction(ErlNifEnv *env, ERL_NIF_TERM term, mjb_direction *direction) {
+    if(mjb_nif_atom_is(env, term, "ltr")) {
+        *direction = MJB_DIRECTION_LTR;
+    } else if(mjb_nif_atom_is(env, term, "rtl")) {
+        *direction = MJB_DIRECTION_RTL;
+    } else if(mjb_nif_atom_is(env, term, "auto")) {
+        *direction = MJB_DIRECTION_AUTO;
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+// Reorder the line [start, end) into a new array of `end - start` positions, or NULL for an
+// empty line. The caller frees it with enif_free.
+static mjb_status mjb_nif_bidi_order(const mjb_bidi_paragraph *paragraph, size_t start, size_t end,
+    size_t **order) {
+    *order = NULL;
+
+    if(start == end) {
+        return MJB_STATUS_OK;
+    }
+
+    if(end - start > SIZE_MAX / sizeof(size_t)) {
+        return MJB_STATUS_OVERFLOW;
+    }
+
+    *order = enif_alloc((end - start) * sizeof(size_t));
+
+    if(*order == NULL) {
+        return MJB_STATUS_NO_MEMORY;
+    }
+
+    mjb_status status = mjb_bidi_reorder_line(paragraph, start, end, *order);
+
+    if(status != MJB_STATUS_OK) {
+        enif_free(*order);
+        *order = NULL;
+    }
+
+    return status;
+}
+
+// bidi_resolve(text, :ltr | :rtl | :auto) -> {:ok, {paragraph, level, count}}
+static ERL_NIF_TERM mjb_nif_bidi_resolve(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary binary;
+    mjb_text text;
+    mjb_direction direction;
+
+    if(argc != 2 || !mjb_nif_get_text(env, argv[0], &binary, &text) ||
+        !mjb_nif_get_direction(env, argv[1], &direction)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_bidi_resolve, binary.size);
+
+    mjb_nif_bidi *bidi = enif_alloc_resource(mjb_nif_bidi_type, sizeof(mjb_nif_bidi));
+
+    if(bidi == NULL) {
+        return mjb_nif_error(env, MJB_STATUS_NO_MEMORY, NULL);
+    }
+
+    // The destructor frees the paragraph, which stays empty if resolving fails.
+    memset(bidi, 0, sizeof(mjb_nif_bidi));
+
+    mjb_status status = mjb_bidi_resolve(&text, direction, &bidi->paragraph);
+
+    if(status != MJB_STATUS_OK) {
+        enif_release_resource(bidi);
+
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM paragraph = enif_make_resource(env, bidi);
+    ERL_NIF_TERM level = enif_make_uint(env, bidi->paragraph.paragraph_level);
+    ERL_NIF_TERM count = enif_make_uint64(env, (ErlNifUInt64)bidi->paragraph.count);
+
+    enif_release_resource(bidi);
+
+    return mjb_nif_ok(env, enif_make_tuple3(env, paragraph, level, count));
+}
+
+// bidi_chars(paragraph) -> [{codepoint, byte_offset, level, resolved_class, mirroring_glyph}],
+// in logical order. mirroring_glyph is 0 when there is none.
+static ERL_NIF_TERM mjb_nif_bidi_chars(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    const mjb_bidi_paragraph *paragraph;
+
+    if(argc != 1 || !mjb_nif_get_bidi(env, argv[0], &paragraph)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_bidi_chars, paragraph->count);
+
+    ERL_NIF_TERM list = enif_make_list(env, 0);
+
+    for(size_t i = paragraph->count; i > 0; --i) {
+        const mjb_bidi_char *c = &paragraph->chars[i - 1];
+        ERL_NIF_TERM item = enif_make_tuple5(env, enif_make_uint(env, c->codepoint),
+            enif_make_uint64(env, (ErlNifUInt64)c->byte_offset), enif_make_uint(env, c->level),
+            enif_make_uint(env, (unsigned int)c->resolved_class),
+            enif_make_uint(env, c->mirroring_glyph));
+
+        list = enif_make_list_cell(env, item, list);
+    }
+
+    return list;
+}
+
+// bidi_reorder(paragraph, start, end) -> {:ok, positions}: the positions of the line in visual
+// order.
+static ERL_NIF_TERM mjb_nif_bidi_reorder(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    const mjb_bidi_paragraph *paragraph;
+    size_t start = 0;
+    size_t end = 0;
+
+    if(argc != 3 || !mjb_nif_get_bidi_line(env, argv, &paragraph, &start, &end)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_bidi_reorder, end - start);
+
+    size_t *order = NULL;
+    mjb_status status = mjb_nif_bidi_order(paragraph, start, end, &order);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM list = enif_make_list(env, 0);
+
+    for(size_t i = end - start; i > 0; --i) {
+        list = enif_make_list_cell(env, enif_make_uint64(env, (ErlNifUInt64)order[i - 1]), list);
+    }
+
+    enif_free(order);
+
+    return mjb_nif_ok(env, list);
+}
+
+// bidi_runs(paragraph, start, end) ->
+// {:ok, [{visual_start, visual_end, logical_start, logical_end, level}]}, from left to right.
+// The ranges are half-open. Rule L2 reverses contiguous logical ranges, so the positions of a run
+// are a contiguous logical range.
+static ERL_NIF_TERM mjb_nif_bidi_runs(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    const mjb_bidi_paragraph *paragraph;
+    size_t start = 0;
+    size_t end = 0;
+
+    if(argc != 3 || !mjb_nif_get_bidi_line(env, argv, &paragraph, &start, &end)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_bidi_runs, end - start);
+
+    size_t count = end - start;
+    size_t *order = NULL;
+    size_t run_count = 0;
+    mjb_status status = mjb_nif_bidi_order(paragraph, start, end, &order);
+
+    if(status == MJB_STATUS_OK && count != 0) {
+        status = mjb_bidi_line_runs(paragraph, order, count, NULL, &run_count);
+    }
+
+    if(status != MJB_STATUS_OK) {
+        enif_free(order);
+
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    if(run_count == 0) {
+        enif_free(order);
+
+        return mjb_nif_ok(env, enif_make_list(env, 0));
+    }
+
+    mjb_bidi_run *runs = run_count <= SIZE_MAX / sizeof(mjb_bidi_run) ?
+        enif_alloc(run_count * sizeof(mjb_bidi_run)) :
+        NULL;
+
+    if(runs == NULL) {
+        enif_free(order);
+
+        return mjb_nif_error(env, MJB_STATUS_NO_MEMORY, NULL);
+    }
+
+    status = mjb_bidi_line_runs(paragraph, order, count, runs, &run_count);
+
+    if(status != MJB_STATUS_OK) {
+        enif_free(runs);
+        enif_free(order);
+
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    ERL_NIF_TERM list = enif_make_list(env, 0);
+
+    for(size_t i = run_count; i > 0; --i) {
+        const mjb_bidi_run *run = &runs[i - 1];
+        size_t first = SIZE_MAX;
+        size_t last = 0;
+
+        for(size_t v = run->start; v < run->end && v < count; ++v) {
+            first = order[v] < first ? order[v] : first;
+            last = order[v] + 1 > last ? order[v] + 1 : last;
+        }
+
+        if(first == SIZE_MAX) {
+            first = last;
+        }
+
+        ERL_NIF_TERM item = enif_make_tuple5(env, enif_make_uint64(env, (ErlNifUInt64)run->start),
+            enif_make_uint64(env, (ErlNifUInt64)run->end),
+            enif_make_uint64(env, (ErlNifUInt64)first), enif_make_uint64(env, (ErlNifUInt64)last),
+            enif_make_uint(env, run->level));
+
+        list = enif_make_list_cell(env, item, list);
+    }
+
+    enif_free(runs);
+    enif_free(order);
+
+    return mjb_nif_ok(env, list);
+}
+
+// Encode the character to display for `c` as UTF-8: its mirroring glyph if it has one (rule L4).
+// Returns the number of bytes, and writes them only when `output` is not NULL.
+// mjb_codepoint_encode also writes a NUL terminator, which the binary has no room for. The
+// codepoints were decoded from UTF-8, so they are scalar values.
+static size_t mjb_nif_bidi_glyph(const mjb_bidi_char *c, unsigned char *output) {
+    mjb_codepoint codepoint = c->mirroring_glyph != 0 ? c->mirroring_glyph : c->codepoint;
+    unsigned char bytes[4];
+    size_t size;
+
+    if(codepoint < 0x80) {
+        bytes[0] = (unsigned char)codepoint;
+        size = 1;
+    } else if(codepoint < 0x800) {
+        bytes[0] = (unsigned char)(0xC0 | (codepoint >> 6));
+        bytes[1] = (unsigned char)(0x80 | (codepoint & 0x3F));
+        size = 2;
+    } else if(codepoint < 0x10000) {
+        bytes[0] = (unsigned char)(0xE0 | (codepoint >> 12));
+        bytes[1] = (unsigned char)(0x80 | ((codepoint >> 6) & 0x3F));
+        bytes[2] = (unsigned char)(0x80 | (codepoint & 0x3F));
+        size = 3;
+    } else {
+        bytes[0] = (unsigned char)(0xF0 | ((codepoint >> 18) & 0x07));
+        bytes[1] = (unsigned char)(0x80 | ((codepoint >> 12) & 0x3F));
+        bytes[2] = (unsigned char)(0x80 | ((codepoint >> 6) & 0x3F));
+        bytes[3] = (unsigned char)(0x80 | (codepoint & 0x3F));
+        size = 4;
+    }
+
+    if(output != NULL) {
+        memcpy(output, bytes, size);
+    }
+
+    return size;
+}
+
+// bidi_visual(paragraph, start, end) -> {:ok, binary}: the line in visual order, as UTF-8, with
+// mirrored characters replaced by their mirroring glyphs.
+static ERL_NIF_TERM mjb_nif_bidi_visual(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    const mjb_bidi_paragraph *paragraph;
+    size_t start = 0;
+    size_t end = 0;
+
+    if(argc != 3 || !mjb_nif_get_bidi_line(env, argv, &paragraph, &start, &end)) {
+        return enif_make_badarg(env);
+    }
+
+    MJB_NIF_MAYBE_DIRTY(mjb_nif_bidi_visual, end - start);
+
+    size_t *order = NULL;
+    mjb_status status = mjb_nif_bidi_order(paragraph, start, end, &order);
+
+    if(status != MJB_STATUS_OK) {
+        return mjb_nif_error(env, status, NULL);
+    }
+
+    size_t size = 0;
+
+    for(size_t i = 0; i < end - start; ++i) {
+        size += mjb_nif_bidi_glyph(&paragraph->chars[order[i]], NULL);
+    }
+
+    ERL_NIF_TERM term;
+    unsigned char *data = enif_make_new_binary(env, size, &term);
+
+    if(data == NULL) {
+        enif_free(order);
+
+        return mjb_nif_error(env, MJB_STATUS_NO_MEMORY, NULL);
+    }
+
+    size_t written = 0;
+
+    for(size_t i = 0; i < end - start; ++i) {
+        written += mjb_nif_bidi_glyph(&paragraph->chars[order[i]], data + written);
+    }
+
+    enif_free(order);
+
+    return mjb_nif_ok(env, term);
+}
+
 // limits() -> the sizes of the C enums, to check the generated Elixir tables against.
 static ERL_NIF_TERM mjb_nif_limits(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     (void)argc;
@@ -1502,9 +1845,14 @@ static ERL_NIF_TERM mjb_nif_limits(ErlNifEnv *env, int argc, const ERL_NIF_TERM 
 
 // Loading
 
-static int mjb_nif_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info) {
-    (void)priv_data;
-    (void)load_info;
+// Create the atoms and the resource type. An upgrade takes over the resources of the old code.
+static int mjb_nif_init(ErlNifEnv *env, ErlNifResourceFlags flags) {
+    mjb_nif_bidi_type = enif_open_resource_type(env, NULL, "mjb_bidi_paragraph",
+        mjb_nif_bidi_destructor, flags, NULL);
+
+    if(mjb_nif_bidi_type == NULL) {
+        return 1;
+    }
 
     mjb_nif_atoms.ok = enif_make_atom(env, "ok");
     mjb_nif_atoms.error = enif_make_atom(env, "error");
@@ -1537,11 +1885,20 @@ static int mjb_nif_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info
     return 0;
 }
 
+static int mjb_nif_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info) {
+    (void)priv_data;
+    (void)load_info;
+
+    return mjb_nif_init(env, ERL_NIF_RT_CREATE);
+}
+
 static int mjb_nif_upgrade(ErlNifEnv *env, void **priv_data, void **old_priv_data,
     ERL_NIF_TERM load_info) {
+    (void)priv_data;
     (void)old_priv_data;
+    (void)load_info;
 
-    return mjb_nif_load(env, priv_data, load_info);
+    return mjb_nif_init(env, ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
 }
 
 static ErlNifFunc mjb_nif_funcs[] = {
@@ -1582,6 +1939,11 @@ static ErlNifFunc mjb_nif_funcs[] = {
     { "validate_encoding", 2, mjb_nif_validate_encoding, 0 },
     { "convert_encoding", 4, mjb_nif_convert_encoding, 0 },
     { "locale_parse", 1, mjb_nif_locale_parse, 0 },
+    { "bidi_resolve", 2, mjb_nif_bidi_resolve, 0 },
+    { "bidi_chars", 1, mjb_nif_bidi_chars, 0 },
+    { "bidi_reorder", 3, mjb_nif_bidi_reorder, 0 },
+    { "bidi_runs", 3, mjb_nif_bidi_runs, 0 },
+    { "bidi_visual", 3, mjb_nif_bidi_visual, 0 },
     { "limits", 0, mjb_nif_limits, 0 },
 };
 

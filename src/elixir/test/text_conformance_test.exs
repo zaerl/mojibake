@@ -3,10 +3,11 @@
 # This file is distributed under the MIT License. See LICENSE for details.
 
 defmodule Mojibake.TextConformanceTest do
-  # The Unicode conformance tests for collation (UTS #10) and IDNA (UTS #46).
+  # The Unicode conformance tests for bidirectional text (UAX #9), collation (UTS #10), and IDNA
+  # (UTS #46).
   use ExUnit.Case, async: true
 
-  alias Mojibake.{Collation, IDNA}
+  alias Mojibake.{Bidi, Collation, IDNA}
 
   @moduletag :conformance
   @moduletag timeout: :infinity
@@ -161,5 +162,45 @@ defmodule Mojibake.TextConformanceTest do
             else: {:cont, {:ok, acc <> <<codepoint::utf8>>}}
       end
     end)
+  end
+
+  # codepoints; paragraph direction (0 LTR, 1 RTL, 2 auto); resolved paragraph level; resolved
+  # levels, with x for the characters that rule X9 removes; the visual order of the characters
+  # that are left, as indices into the codepoints.
+  test "BidiCharacterTest.txt" do
+    {failures, count} =
+      "UCD/BidiCharacterTest.txt"
+      |> lines()
+      |> Enum.reduce({[], 0}, fn {line, number}, {failures, count} ->
+        {bidi_failures(String.split(line, ";"), number) ++ failures, count + 1}
+      end)
+
+    assert failures == []
+    assert count > 90_000
+  end
+
+  defp bidi_failures([codepoints, direction, level, levels, order], number) do
+    codepoints = codepoints |> String.split() |> Enum.map(&String.to_integer(&1, 16))
+    direction = Enum.at([:ltr, :rtl, :auto], String.to_integer(direction))
+    levels = String.split(levels)
+
+    # The codepoint index of each character of the paragraph.
+    kept = for {level, index} <- Enum.with_index(levels), level != "x", do: index
+
+    paragraph = codepoints |> List.to_string() |> Bidi.resolve!(direction)
+
+    actual = {
+      paragraph.level,
+      Bidi.levels(paragraph),
+      paragraph |> Bidi.reorder() |> Enum.map(&Enum.at(kept, &1))
+    }
+
+    expected = {
+      String.to_integer(level),
+      for(level <- levels, level != "x", do: String.to_integer(level)),
+      order |> String.split() |> Enum.map(&String.to_integer/1)
+    }
+
+    if actual == expected, do: [], else: [{number, actual, expected}]
   end
 end

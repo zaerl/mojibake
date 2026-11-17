@@ -45,8 +45,9 @@ defmodule Mojibake.MixProject do
   end
 
   defp description do
-    "Unicode text processing: normalization, locale-aware casing, caseless matching, grapheme, " <>
-      "word, sentence, and line segmentation, and terminal width. Wraps the Mojibake C library."
+    "Unicode text processing: normalization, casing, segmentation, terminal width, character " <>
+      "data, collation, IDNA, confusables, encodings, BCP 47 tags, and bidirectional text. " <>
+      "Wraps the Mojibake C library."
   end
 
   defp package do
@@ -80,6 +81,10 @@ defmodule Mojibake.MixProject do
         "Encodings and language tags": [
           Mojibake.Encoding,
           Mojibake.LanguageTag
+        ],
+        "Bidirectional text": [
+          Mojibake.Bidi,
+          Mojibake.Bidi.Paragraph
         ]
       ],
       source_url: @source_url,

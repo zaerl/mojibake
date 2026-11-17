@@ -350,7 +350,15 @@ C enums; their atom lists live in `lib/mojibake/char.ex` and `lib/mojibake/emoji
 `_Static_assert`s in the NIF fail the build when the enums change.
 
 The conformance tests in `test/conformance_test.exs`, `test/ucd_test.exs`, and
-`test/text_conformance_test.exs` (collation and IDNA) read `unicode-data/`; set `MOJIBAKE_TEST_DATA` to read the files from elsewhere. They are skipped when the files are missing.
+`test/text_conformance_test.exs` (bidi, collation, and IDNA) read `unicode-data/`; set
+`MOJIBAKE_TEST_DATA` to read the files from elsewhere. They are skipped when the files are
+missing.
+
+A resolved bidi paragraph is an `mjb_bidi_paragraph` in a NIF resource, freed with
+`mjb_bidi_paragraph_free` by the resource destructor; a code upgrade takes the resource type over.
+
+`examples/elixir/example.exs` uses the package through `Mix.install` with a path dependency. Run it
+with `make -C examples example-elixir`.
 
 ### Packaging and publishing
 
@@ -359,12 +367,24 @@ package, runs `mix hex.build --unpack` into `build-elixir-package/`, and compile
 unpacked package from its vendored sources. Like `package-rust`, it refuses to run when `src/` or
 `LICENSE` has uncommitted or untracked changes, unless `ALLOW_DIRTY=1`.
 
-`make update-version` sets the package version in `mix.exs`, the README, and the version doctest.
-To publish, run `make vendor-elixir`, then `mix hex.publish` in `src/elixir`.
+To release the package:
+
+1. Set `VERSION` and run `make update-version`. It sets the package version in `mix.exs`, the
+   README, and the version doctest.
+2. Commit the release and check that `make test-elixir` and `make package-elixir` pass.
+3. Publish from the same clean checkout. `make vendor-elixir` puts the C sources and `LICENSE` in
+   the package, which `mix hex.publish` then uploads along with the docs:
+
+   ```sh
+   make vendor-elixir
+   (cd src/elixir && mix hex.publish)
+   ```
+
+   `mix hex.publish` lists the package files and asks for confirmation; check that
+   `c_src/mojibake/` and `LICENSE` are in the list.
 
 ### Not done yet
 
-- the bidirectional algorithm
 - precompiled NIFs and Windows support
 
 ## Reporting Issues
