@@ -98,6 +98,11 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 #endif
     } else if(codepoint >= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START &&
         codepoint <= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
+        if(codepoint > 0x18CDA && codepoint < MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
+            // U+18CDB to U+18CFE are unassigned, U+18CFF is KHITAN SMALL SCRIPT CHARACTER-18CFF
+            return false;
+        }
+
 #if MJB_FEATURE_CHARACTER_NAMES
         format = "KHITAN SMALL SCRIPT CHARACTER-%X";
 #endif
