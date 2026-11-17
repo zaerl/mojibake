@@ -12,6 +12,7 @@ header, with zero dependencies. It is released under the MIT License.
 [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) ·
 [C++ wrapper](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md) ·
 [Rust wrapper](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md) ·
+[Elixir wrapper](https://github.com/zaerl/mojibake/blob/main/src/elixir/README.md) ·
 [Changelog](https://github.com/zaerl/mojibake/blob/main/CHANGELOG.md) ·
 [Roadmap](https://github.com/zaerl/mojibake/blob/main/ROADMAP.md)
 
@@ -271,6 +272,22 @@ default and map to the `MJB_FEATURE_*` options below; turn them off with
 [src/rust/README.md](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md) for the full
 API and design.
 
+### Elixir package
+
+`src/elixir` is a Mix project that compiles the C library into a NIF. It covers normalization,
+locale-aware casing, caseless matching, segmentation, line breaking, and terminal width so far.
+It is not on Hex yet; depend on a checkout with `{:mojibake, path: "path/to/mojibake/src/elixir"}`:
+
+```elixir
+{:ok, "İSTANBUL"} = Mojibake.upcase("istanbul", locale: "tr")
+["Hello", ",", " ", "world", "!"] = Mojibake.words("Hello, world!")
+"日本" = Mojibake.truncate_to_width("日本語", 5)
+```
+
+Run `make test-elixir` to test it. See
+[src/elixir/README.md](https://github.com/zaerl/mojibake/blob/main/src/elixir/README.md) for the
+API and design.
+
 ### WebAssembly and TypeScript
 
 `src/api` packages the library compiled with Emscripten behind a typed TypeScript API for Node and
@@ -383,6 +400,8 @@ Continuous integration covers:
   wrapper
 - [src/rust/README.md](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md): the Rust
   crates
+- [src/elixir/README.md](https://github.com/zaerl/mojibake/blob/main/src/elixir/README.md): the
+  Elixir package
 - [INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md): installing as a CMake package
 - [TESTS.md](https://github.com/zaerl/mojibake/blob/main/TESTS.md): test coverage and the Unicode
   test files used

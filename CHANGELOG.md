@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Elixir: a `mojibake` Mix package in `src/elixir` that compiles the C library into a NIF, with
+  normalization (including NFKC_Casefold) and quick checks, locale-aware upper, lower, and
+  titlecase, full and simple case folding, caseless matching, grapheme, word, and sentence
+  segmentation, line-break opportunities, counts and prefixes, and terminal width and truncation.
+  It passes the Unicode normalization, segmentation, and line-break conformance tests
+- `make test-elixir`, `make vendor-elixir`, and `make package-elixir`, and an Elixir CI job
 
 ### Changed
 - Updated Attractor to 1.1.0
