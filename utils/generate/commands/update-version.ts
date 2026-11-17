@@ -63,6 +63,19 @@ export async function updateVersion() {
   fileContent = substituteBlock(fileContent, 'name = "mojibake-sys"\nversion = "', '"', v.version);
   writeFileSync('../../src/rust/Cargo.lock', fileContent);
 
+  // Elixir package: the package version, the README dependency, and the version doctest
+  fileContent = readFileSync('../../src/elixir/mix.exs', 'utf-8');
+  fileContent = substituteBlock(fileContent, '@version "', '"', v.version);
+  writeFileSync('../../src/elixir/mix.exs', fileContent);
+
+  fileContent = readFileSync('../../src/elixir/README.md', 'utf-8');
+  fileContent = substituteBlock(fileContent, '{:mojibake, "~> ', '"}', v.versionShort);
+  writeFileSync('../../src/elixir/README.md', fileContent);
+
+  fileContent = readFileSync('../../src/elixir/lib/mojibake.ex', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'iex> Mojibake.version()\n      "', '"', v.version);
+  writeFileSync('../../src/elixir/lib/mojibake.ex', fileContent);
+
   const zip = `mojibake-amalgamation-${v.major}${v.minor}${v.revision}`;
   fileContent = readFileSync('../../README.md', 'utf-8');
   fileContent = substituteBlock(fileContent, 'Download it here [', '.zip)',
@@ -101,6 +114,7 @@ export async function updateVersion() {
     `git commit --signoff -am "Update version to ${v.version}"`,
     // package-rust refuses to run while src/ has uncommitted changes, so it follows the commit
     'make test-rust && make package-rust',
+    'make test-elixir && make package-elixir',
     `git tag v${v.version}`,
     'git push && git push origin --tags',
     'Deploy',
@@ -117,4 +131,10 @@ export async function updateVersion() {
   console.log('\nPublished versions cannot be overwritten; check them at:');
   console.log(`https://crates.io/crates/mojibake-sys/${v.version}`);
   console.log(`https://crates.io/crates/mojibake-rs/${v.version}`);
+
+  console.log(`\nPublish the Elixir package ${v.version} to Hex from the same checkout`);
+  console.log('(requires `mix hex.user auth` with an account that owns the mojibake package):\n');
+  console.log('make vendor-elixir');
+  console.log('(cd src/elixir && mix hex.publish)');
+  console.log(`\nhttps://hex.pm/packages/mojibake/${v.version}`);
 }

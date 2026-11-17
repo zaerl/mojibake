@@ -214,7 +214,8 @@ tidy: configure-tidy
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
 	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
 	test-ubsan test-no-names test-no-collation test-no-idna test-no-security test-wasm \
-	ctest ctest-cpp test-rust vendor-rust package-rust test-docker
+	ctest ctest-cpp test-rust vendor-rust package-rust test-elixir vendor-elixir \
+	package-elixir test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -353,6 +354,44 @@ package-rust: vendor-rust
 	cd src/rust && cargo package --workspace --locked --allow-dirty $(ARGS)
 	cd src/rust && cargo publish --workspace --locked --dry-run --allow-dirty $(ARGS)
 
+# Run the Elixir package's tests with every optional feature on and then off, plus formatting,
+# warning-free Elixir and NIF compilation, and warning-free docs. Needs Elixir and Erlang/OTP.
+ELIXIR_CFLAGS ?= -O2 -Werror
+
+test-elixir:
+	cd src/elixir && mix deps.get
+	cd src/elixir && mix format --check-formatted
+	cd src/elixir && CFLAGS="$(ELIXIR_CFLAGS)" mix test --warnings-as-errors $(ARGS)
+	cd src/elixir && CFLAGS="$(ELIXIR_CFLAGS)" MOJIBAKE_FEATURES=none \
+		mix test --warnings-as-errors $(ARGS)
+	cd src/elixir && CFLAGS="$(ELIXIR_CFLAGS)" mix docs --warnings-as-errors
+
+# Copy the C sources into src/elixir/c_src/mojibake and the license into src/elixir (both
+# git-ignored) so the Hex package is self-contained
+vendor-elixir:
+	@rm -rf src/elixir/c_src/mojibake
+	@mkdir -p src/elixir/c_src/mojibake
+	@cp src/*.c src/*.h src/CMakeLists.txt src/elixir/c_src/mojibake/
+	@cp LICENSE src/elixir/LICENSE
+
+# Build the Hex package, then unpack it outside src/ and check that it compiles and loads from the
+# vendored sources alone. Nothing is published. The packaged sources must be committed, unless
+# ALLOW_DIRTY=1
+ELIXIR_PACKAGE_DIR = build-elixir-package
+
+package-elixir: vendor-elixir
+	@if [ "$(ALLOW_DIRTY)" != "1" ] && \
+		[ -n "$$(git status --porcelain --untracked-files=all -- src LICENSE)" ]; then \
+		git status --short --untracked-files=all -- src LICENSE; \
+		echo "Commit these changes first, or set ALLOW_DIRTY=1"; \
+		exit 1; \
+	fi
+	@rm -rf build-elixir-package
+	cd src/elixir && mix deps.get && mix hex.build --unpack -o ../../$(ELIXIR_PACKAGE_DIR)
+	cd $(ELIXIR_PACKAGE_DIR) && MIX_ENV=prod mix deps.get --only prod
+	cd $(ELIXIR_PACKAGE_DIR) && env -u MOJIBAKE_SRC_DIR MIX_ENV=prod \
+		mix run --no-start -e 'IO.puts("Mojibake " <> Mojibake.version())'
+
 # Run tests in Docker container
 test-docker:
 	docker build -t mojibake .
@@ -420,6 +459,9 @@ help:
 	@echo "  test-rust               - Test the Rust crates in src/rust with cargo"
 	@echo "  vendor-rust             - Copy the C sources into the mojibake-sys crate"
 	@echo "  package-rust            - Vendor, package and dry-run publish the Rust crates"
+	@echo "  test-elixir             - Test the Elixir package in src/elixir with mix"
+	@echo "  vendor-elixir           - Copy the C sources into the Elixir package"
+	@echo "  package-elixir          - Vendor, build and check the Elixir Hex package"
 	@echo "  generate                - Regenerate source files"
 	@echo "  generate-locale         - Generate locale file"
 	@echo "  generate-site           - Generate site"

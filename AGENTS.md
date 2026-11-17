@@ -28,6 +28,8 @@ The repository contains:
 - a header-only C++20 wrapper in `src/cpp/mojibake.hpp` (namespace `mjb`, see `src/cpp/README.md`)
 - Rust crates in `src/rust/`: `mojibake-sys` (Cargo build of the C library plus raw FFI) and
   `mojibake` (safe API); see `src/rust/README.md`
+- an Elixir Mix package in `src/elixir/` that compiles the C library into a NIF
+  (`c_src/mojibake_nif.c`, built through `elixir_make`); see `src/elixir/README.md`
 - a native command-line client in `src/shell/`
 - an Emscripten/WASM module and TypeScript API in `src/api/`, plus a demo site in `src/site/`
 - a SwiftUI macOS/iOS demo app in `src/ui/Mojibake/` (Xcode project; not built by CMake or CI)
@@ -149,6 +151,11 @@ finishing:
 - `make test-rust` - run rustfmt, clippy, and the Rust crates' tests with features on and off
 - `make package-rust` - vendor the C sources into `src/rust/mojibake-sys/csrc/` and run
   `cargo package` and `cargo publish --dry-run` for both crates (nothing is published)
+- `make test-elixir` - run `mix format --check-formatted`, the Elixir tests (including the Unicode
+  conformance files) with features on and off, and `mix docs`, with warnings as errors for both
+  the Elixir code and the NIF's C sources
+- `make package-elixir` - vendor the C sources into `src/elixir/c_src/mojibake/`, build the Hex
+  package, and check that the unpacked package compiles and loads (nothing is published)
 - `make test-docker` - build and test in the Alpine Linux container
 - `FUZZ_TIME=60 make fuzz` - fuzz the public API with libFuzzer in Docker (`fuzz/fuzz.c`)
 
@@ -281,6 +288,8 @@ Key public headers are `src/mojibake.h`, `src/unicode.h`, and `src/locales.h`. O
 
 - `src/shell/` - the CLI (`main.c`, `shell.c`, one file per command group in `commands/`)
 - `src/api/` - TypeScript wrapper (`index.ts`), synced WASM artifacts, and API tests
+- `src/elixir/` - Elixir package: `lib/` (Elixir API), `c_src/mojibake_nif.c` (NIF), `Makefile`
+  (NIF build), and `test/` (ExUnit and conformance tests)
 - `src/site/` - static demo site generated from the WASM build
 - `src/ui/Mojibake/` - SwiftUI demo app
 - `fuzz/` - libFuzzer harness, seed corpus, and Dockerfile
@@ -394,3 +403,5 @@ validation commands were run:
 | CLI | `make build` and `make ctest` |
 | Rust crates, or C structs and enums they mirror | `make test-rust` |
 | Rust packaging, or the C source file set | `make package-rust` |
+| Elixir package, or C enums and statuses the NIF maps to atoms | `make test-elixir` |
+| Elixir packaging, or the C source file set | `make package-elixir` |

@@ -308,6 +308,59 @@ To release the crates:
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy
 
+## Elixir package
+
+The Elixir package lives in `src/elixir/`; its user-facing documentation is
+[src/elixir/README.md](src/elixir/README.md). It needs Elixir 1.15 or newer, Erlang/OTP, a C
+compiler, and `make`.
+
+### Building and testing
+
+From the repository root:
+
+```sh
+make test-elixir
+```
+
+This checks formatting, runs the tests with all optional features on and with all of them off,
+and builds the docs, with warnings as errors for both the Elixir code and the C sources
+(`ELIXIR_CFLAGS`, `-O2 -Werror` by default). Extra `mix test` flags go in `ARGS`, for example
+`make test-elixir ARGS="--only conformance"`. Inside `src/elixir`, plain `mix test` works too.
+
+The NIF is `c_src/mojibake_nif.c`, built by `src/elixir/Makefile` through `elixir_make`. `mix.exs`
+finds the C sources in this order:
+
+1. `MOJIBAKE_SRC_DIR`, when it is set
+2. the repository's `src/` directory, when the package is built inside a Mojibake checkout
+3. `c_src/mojibake/`, the git-ignored copy that `make vendor-elixir` makes for packaging
+
+The source list comes from the generated `SOURCES` block of `src/CMakeLists.txt`. The optional C
+features follow `config :mojibake, features: [...]`, or the `MOJIBAKE_FEATURES` environment
+variable (`none` or a comma-separated list), which wins.
+
+Every NIF that takes text reschedules itself on a dirty CPU scheduler when the input is larger
+than 16 KiB. The C library allocates through `enif_alloc`, installed with `mjb_set_allocator` when
+the NIF loads.
+
+The conformance tests in `test/conformance_test.exs` read `unicode-data/`; set
+`MOJIBAKE_TEST_DATA` to read the files from elsewhere. They are skipped when the files are missing.
+
+### Packaging and publishing
+
+`make package-elixir` copies `src/*.c`, `src/*.h`, `src/CMakeLists.txt`, and `LICENSE` into the
+package, runs `mix hex.build --unpack` into `build-elixir-package/`, and compiles and loads the
+unpacked package from its vendored sources. Like `package-rust`, it refuses to run when `src/` or
+`LICENSE` has uncommitted or untracked changes, unless `ALLOW_DIRTY=1`.
+
+`make update-version` sets the package version in `mix.exs`, the README, and the version doctest.
+To publish, run `make vendor-elixir`, then `mix hex.publish` in `src/elixir`.
+
+### Not done yet
+
+- character properties and names, encodings, emoji, Hangul, collation, IDNA, identifiers,
+  confusables, BCP 47 tags, and the bidirectional algorithm
+- precompiled NIFs and Windows support
+
 ## Reporting Issues
 
 - Use the GitHub issue tracker

@@ -1,0 +1,8 @@
+/_build/
+/deps/
+/doc/
+/cover/
+/c_src/mojibake/
+/LICENSE
+/mojibake-*.tar
+erl_crash.dump
