@@ -25,14 +25,12 @@ _Static_assert(MJB_STATUS_END_OF_INPUT == 13, "update mjb_nif_status_names");
 _Static_assert(MJB_TEXT_ERROR_UNPAIRED_SURROGATE == 10, "update mjb_nif_text_error_names");
 
 static const char *const mjb_nif_status_names[] = { "ok", "invalid_argument", "invalid_encoding",
-    "invalid_codepoint", "invalid_form", "unsupported", "no_memory", "overflow",
-    "malformed_input", "output_too_small", "callback_stopped", "not_found",
-    "feature_not_enabled", "end_of_input" };
+    "invalid_codepoint", "invalid_form", "unsupported", "no_memory", "overflow", "malformed_input",
+    "output_too_small", "callback_stopped", "not_found", "feature_not_enabled", "end_of_input" };
 
-static const char *const mjb_nif_text_error_names[] = { "none", "non_ascii",
-    "invalid_leading_byte", "unexpected_continuation", "missing_continuation",
-    "overlong_sequence", "surrogate", "out_of_range", "truncated_sequence",
-    "truncated_code_unit", "unpaired_surrogate" };
+static const char *const mjb_nif_text_error_names[] = { "none", "non_ascii", "invalid_leading_byte",
+    "unexpected_continuation", "missing_continuation", "overlong_sequence", "surrogate",
+    "out_of_range", "truncated_sequence", "truncated_code_unit", "unpaired_surrogate" };
 
 static struct {
     ERL_NIF_TERM ok;
@@ -101,9 +99,9 @@ static ERL_NIF_TERM mjb_nif_error(ErlNifEnv *env, mjb_status status,
     if(status == MJB_STATUS_MALFORMED_INPUT && diagnostic != NULL &&
         diagnostic->error != MJB_TEXT_ERROR_NONE) {
         size_t detail = (size_t)diagnostic->error;
-        ERL_NIF_TERM detail_atom = detail < MJB_NIF_COUNT(mjb_nif_atoms.text_errors)
-            ? mjb_nif_atoms.text_errors[detail]
-            : mjb_nif_atoms.nil;
+        ERL_NIF_TERM detail_atom = detail < MJB_NIF_COUNT(mjb_nif_atoms.text_errors) ?
+            mjb_nif_atoms.text_errors[detail] :
+            mjb_nif_atoms.nil;
 
         return enif_make_tuple5(env, mjb_nif_atoms.error, mjb_nif_status_atom(status),
             enif_make_uint64(env, (ErlNifUInt64)diagnostic->byte_offset),
@@ -195,11 +193,11 @@ static bool mjb_nif_should_reschedule(size_t size) {
     return size > MJB_NIF_DIRTY_THRESHOLD && enif_thread_type() == ERL_NIF_THR_NORMAL_SCHEDULER;
 }
 
-#define MJB_NIF_MAYBE_DIRTY(name, size)                                                         \
-    do {                                                                                        \
-        if(mjb_nif_should_reschedule(size)) {                                                   \
+#define MJB_NIF_MAYBE_DIRTY(name, size) \
+    do { \
+        if(mjb_nif_should_reschedule(size)) { \
             return enif_schedule_nif(env, #name, ERL_NIF_DIRTY_JOB_CPU_BOUND, name, argc, argv); \
-        }                                                                                       \
+        } \
     } while(0)
 
 // Turn an mjb_result into a binary term. A borrowed result points into `input`, so it becomes the
@@ -295,9 +293,9 @@ static ERL_NIF_TERM mjb_nif_normalize(ErlNifEnv *env, int argc, const ERL_NIF_TE
 
     mjb_result result = { NULL, 0, 0, false };
     mjb_diagnostic diagnostic = { MJB_TEXT_ERROR_NONE, 0, 0, 0 };
-    mjb_status status = casefold
-        ? mjb_nfkc_casefold(&text, policy, MJB_ENC_UTF_8, &result, &diagnostic)
-        : mjb_normalize(&text, policy, form, MJB_ENC_UTF_8, &result, &diagnostic);
+    mjb_status status = casefold ?
+        mjb_nfkc_casefold(&text, policy, MJB_ENC_UTF_8, &result, &diagnostic) :
+        mjb_normalize(&text, policy, form, MJB_ENC_UTF_8, &result, &diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return mjb_nif_error(env, status, &diagnostic);
@@ -380,8 +378,7 @@ static ERL_NIF_TERM mjb_nif_map_case(ErlNifEnv *env, int argc, const ERL_NIF_TER
 }
 
 // caseless_match(first, second, mode, policy) -> {:ok, boolean}
-static ERL_NIF_TERM mjb_nif_caseless_match(ErlNifEnv *env, int argc,
-    const ERL_NIF_TERM argv[]) {
+static ERL_NIF_TERM mjb_nif_caseless_match(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary first_binary;
     ErlNifBinary second_binary;
     mjb_text first;
@@ -561,8 +558,8 @@ static ERL_NIF_TERM mjb_nif_line_breaks(ErlNifEnv *env, int argc, const ERL_NIF_
         }
 
         if(type == MJB_BT_MANDATORY || (type == MJB_BT_ALLOWED && position > 0)) {
-            ERL_NIF_TERM kind = type == MJB_BT_MANDATORY ? mjb_nif_atoms.mandatory
-                                                         : mjb_nif_atoms.allowed;
+            ERL_NIF_TERM kind = type == MJB_BT_MANDATORY ? mjb_nif_atoms.mandatory :
+                                                           mjb_nif_atoms.allowed;
 
             list = enif_make_list_cell(env,
                 enif_make_tuple2(env, kind, enif_make_uint64(env, (ErlNifUInt64)position)), list);
@@ -636,8 +633,8 @@ static ERL_NIF_TERM mjb_nif_prefix_length(ErlNifEnv *env, int argc, const ERL_NI
 
     MJB_NIF_MAYBE_DIRTY(mjb_nif_prefix_length, binary.size);
 
-    size_t length = word ? mjb_word_prefix_length(&text, count)
-                         : mjb_grapheme_prefix_length(&text, count);
+    size_t length = word ? mjb_word_prefix_length(&text, count) :
+                           mjb_grapheme_prefix_length(&text, count);
 
     return enif_make_uint64(env, (ErlNifUInt64)(length > binary.size ? binary.size : length));
 }
@@ -652,8 +649,7 @@ static ERL_NIF_TERM mjb_nif_prefix_length_for_width(ErlNifEnv *env, int argc,
     size_t columns;
 
     if(argc != 4 || !mjb_nif_get_text(env, argv[0], &binary, &text) ||
-        !mjb_nif_get_profile(env, argv[2], &profile) ||
-        !mjb_nif_get_size(env, argv[3], &columns)) {
+        !mjb_nif_get_profile(env, argv[2], &profile) || !mjb_nif_get_size(env, argv[3], &columns)) {
         return enif_make_badarg(env);
     }
 
@@ -665,15 +661,14 @@ static ERL_NIF_TERM mjb_nif_prefix_length_for_width(ErlNifEnv *env, int argc,
 
     MJB_NIF_MAYBE_DIRTY(mjb_nif_prefix_length_for_width, binary.size);
 
-    size_t length = word ? mjb_word_prefix_length_for_width(&text, profile, columns)
-                         : mjb_grapheme_prefix_length_for_width(&text, profile, columns);
+    size_t length = word ? mjb_word_prefix_length_for_width(&text, profile, columns) :
+                           mjb_grapheme_prefix_length_for_width(&text, profile, columns);
 
     return enif_make_uint64(env, (ErlNifUInt64)(length > binary.size ? binary.size : length));
 }
 
 // terminal_width(text, profile, policy) -> {:ok, columns}
-static ERL_NIF_TERM mjb_nif_terminal_width(ErlNifEnv *env, int argc,
-    const ERL_NIF_TERM argv[]) {
+static ERL_NIF_TERM mjb_nif_terminal_width(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary binary;
     mjb_text text;
     mjb_terminal_width_profile profile;
@@ -717,8 +712,7 @@ static ERL_NIF_TERM mjb_nif_version(ErlNifEnv *env, int argc, const ERL_NIF_TERM
     return mjb_nif_static_string(env, mjb_version());
 }
 
-static ERL_NIF_TERM mjb_nif_unicode_version(ErlNifEnv *env, int argc,
-    const ERL_NIF_TERM argv[]) {
+static ERL_NIF_TERM mjb_nif_unicode_version(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     (void)argc;
     (void)argv;
 
@@ -775,9 +769,12 @@ static int mjb_nif_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info
     }
 
     // The allocator is process-global and can be set only once. A second load of this shared
-    // object in the same process (an upgrade) shares the first one's library state.
+    // object in the same process (an upgrade) shares the first one's library state, and then
+    // mjb_set_allocator reports MJB_STATUS_INVALID_ARGUMENT, which is fine. GCC ignores a (void)
+    // cast on a warn_unused_result call, so the status goes through a variable.
     mjb_allocator allocator = { NULL, mjb_nif_alloc, mjb_nif_realloc, mjb_nif_free };
-    (void)mjb_set_allocator(&allocator);
+    mjb_status status = mjb_set_allocator(&allocator);
+    (void)status;
 
     return 0;
 }
