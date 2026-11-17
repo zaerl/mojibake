@@ -7,6 +7,24 @@ defmodule Mojibake.MixProject do
 
   @version "0.7.0"
   @source_url "https://github.com/zaerl/mojibake"
+
+  # Precompiled NIFs are assets of the GitHub release of each version, built by
+  # .github/workflows/elixir-precompile.yml. Every other target compiles from source. A NIF built
+  # for NIF version 2.16 (OTP 24 and 25) also loads on every later OTP.
+  @precompiled_url "#{@source_url}/releases/download/v#{@version}/@{artefact_filename}"
+  @precompiled_targets %{
+    {:unix, :linux} => %{
+      "x86_64-linux-gnu" => "x86_64-linux-gnu-",
+      "aarch64-linux-gnu" => "aarch64-linux-gnu-"
+    },
+    {:unix, :darwin} => %{
+      "x86_64-apple-darwin" => {"cc", "cc", "<%= cc %> -arch x86_64", "<%= cxx %> -arch x86_64"},
+      "aarch64-apple-darwin" => {"cc", "cc", "<%= cc %> -arch arm64", "<%= cxx %> -arch arm64"}
+    },
+    {:win32, :nt} => %{
+      "x86_64-windows-msvc" => {"cl", "cl"}
+    }
+  }
   @features [:names, :collation, :idna, :security]
   @feature_defines %{
     names: "MJB_FEATURE_CHARACTER_NAMES",
@@ -24,7 +42,19 @@ defmodule Mojibake.MixProject do
       compilers: [:elixir_make] ++ Mix.compilers(),
       make_env: &make_env/0,
       make_clean: ["clean"],
+      make_precompiler: {:nif, CCPrecompiler},
+      make_precompiler_url: precompiled_url(),
+      make_precompiler_filename: "mojibake_nif",
+      make_precompiler_priv_paths: ["mojibake_nif.*"],
+      make_precompiler_nif_versions: [versions: ["2.16"]],
+      make_force_build: force_build?(),
+      cc_precompiler: [
+        compilers: @precompiled_targets,
+        cleanup: "clean",
+        allow_missing_compiler: true
+      ],
       deps: deps(),
+      aliases: aliases(),
       description: description(),
       package: package(),
       docs: docs(),
@@ -40,8 +70,28 @@ defmodule Mojibake.MixProject do
   defp deps do
     [
       {:elixir_make, "~> 0.9", runtime: false},
+      {:cc_precompiler, "~> 0.1.11", runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
+  end
+
+  # checksum.exs lists the precompiled NIFs and their checksums. `mix elixir_make.checksum --all`
+  # downloads them from the release and writes it; without it the package always compiles.
+  defp aliases do
+    ["hex.publish": [&require_checksums/1, "hex.publish"]]
+  end
+
+  defp require_checksums(_args) do
+    case File.read("checksum.exs") do
+      {:ok, contents} when byte_size(contents) > 4 ->
+        :ok
+
+      _ ->
+        Mix.raise(
+          "checksum.exs is missing or empty: run `mix elixir_make.checksum --all` once the " <>
+            "release has its precompiled NIFs"
+        )
+    end
   end
 
   defp description do
@@ -54,7 +104,9 @@ defmodule Mojibake.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(lib c_src Makefile mix.exs README.md LICENSE .formatter.exs)
+      files:
+        ~w(lib c_src Makefile Makefile.win mix.exs README.md LICENSE .formatter.exs) ++
+          Enum.filter(["checksum.exs"], &File.regular?/1)
     ]
   end
 
@@ -92,16 +144,74 @@ defmodule Mojibake.MixProject do
     ]
   end
 
+  # MOJIBAKE_PRECOMPILED_URL replaces the release URL, for a mirror. It is a template like
+  # @precompiled_url, with @{artefact_filename} for the file name.
+  defp precompiled_url, do: System.get_env("MOJIBAKE_PRECOMPILED_URL") || @precompiled_url
+
+  # Compile the NIF instead of downloading it when asked to with MOJIBAKE_BUILD, when the
+  # precompiled NIFs would not match the sources or the features, or inside the repository, whose
+  # sources are newer than the last release. `config :elixir_make, :force_build, mojibake: true`
+  # forces it too.
+  defp force_build? do
+    System.get_env("MOJIBAKE_BUILD") in ["1", "true"] or
+      System.get_env("MOJIBAKE_SRC_DIR") != nil or checkout?() or
+      Enum.sort(enabled_features()) != Enum.sort(@features)
+  end
+
   # Environment for the Makefile: where the C sources are, which to compile, and which optional
   # features to build.
   defp make_env do
     src = source_dir()
+    sources = c_sources(src)
+    defines = feature_defines()
+
+    env = %{
+      "MOJIBAKE_SRC_DIR" => src,
+      "MOJIBAKE_SOURCES" => Enum.join(sources, " "),
+      "MOJIBAKE_DEFINES" => defines
+    }
+
+    case :os.type() do
+      {:win32, _} -> Map.merge(env, windows_env(src, sources, defines))
+      _ -> env
+    end
+  end
+
+  # nmake has no pattern rules, no functions, and no portable mkdir, so Makefile.win gets the
+  # source paths and its directories ready-made, in Windows form. The flags file holds the
+  # compiler flags and changes only when they do, so that a change rebuilds the NIF, like the
+  # flags file of the Makefile.
+  defp windows_env(src, sources, defines) do
+    app_path = Mix.Project.app_path()
+    obj_dir = Path.join(app_path, "obj")
+    priv_dir = Path.join(app_path, "priv")
+    flags_file = Path.join(obj_dir, "flags")
+    flags = Enum.join([System.get_env("CFLAGS", ""), src, defines], "\n")
+
+    File.mkdir_p!(obj_dir)
+    File.mkdir_p!(priv_dir)
+
+    if File.read(flags_file) != {:ok, flags} do
+      File.write!(flags_file, flags)
+    end
 
     %{
-      "MOJIBAKE_SRC_DIR" => src,
-      "MOJIBAKE_SOURCES" => Enum.join(c_sources(src), " "),
-      "MOJIBAKE_DEFINES" => feature_defines()
+      "MOJIBAKE_SRC_DIR" => windows_path(src),
+      "MOJIBAKE_SOURCE_PATHS" => Enum.map_join(sources, " ", &windows_path(Path.join(src, &1))),
+      "MOJIBAKE_OBJ_DIR" => windows_path(obj_dir),
+      "MOJIBAKE_PRIV_DIR" => windows_path(priv_dir),
+      "MOJIBAKE_FLAGS_FILE" => windows_path(flags_file)
     }
+  end
+
+  defp windows_path(path), do: String.replace(path, "/", "\\")
+
+  # Inside a Mojibake checkout, the repository's src/ directory.
+  defp checkout? do
+    checkout = Path.expand("..", __DIR__)
+
+    Path.basename(__DIR__) == "elixir" and File.regular?(Path.join(checkout, "mojibake.h")) and
+      File.regular?(Path.join(checkout, "CMakeLists.txt"))
   end
 
   # The C sources are read from, in order:
@@ -119,8 +229,7 @@ defmodule Mojibake.MixProject do
       dir = System.get_env("MOJIBAKE_SRC_DIR") ->
         Path.expand(dir)
 
-      Path.basename(__DIR__) == "elixir" and File.regular?(Path.join(checkout, "mojibake.h")) and
-          File.regular?(Path.join(checkout, "CMakeLists.txt")) ->
+      checkout?() ->
         checkout
 
       File.regular?(Path.join(vendored, "CMakeLists.txt")) ->
@@ -151,13 +260,16 @@ defmodule Mojibake.MixProject do
   #
   # or with the MOJIBAKE_FEATURES environment variable, a comma-separated list or "none", which
   # wins over the configuration.
+  defp enabled_features do
+    case System.get_env("MOJIBAKE_FEATURES") do
+      nil -> Application.get_env(:mojibake, :features, @features)
+      "none" -> []
+      value -> value |> String.split(",", trim: true) |> Enum.map(&parse_feature/1)
+    end
+  end
+
   defp feature_defines do
-    enabled =
-      case System.get_env("MOJIBAKE_FEATURES") do
-        nil -> Application.get_env(:mojibake, :features, @features)
-        "none" -> []
-        value -> value |> String.split(",", trim: true) |> Enum.map(&parse_feature/1)
-      end
+    enabled = enabled_features()
 
     Enum.each(enabled, fn feature ->
       if feature not in @features do

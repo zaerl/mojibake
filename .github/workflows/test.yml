@@ -145,6 +145,37 @@ jobs:
         if: matrix.latest && runner.os == 'Linux'
         run: make package-elixir
 
+  elixir-windows:
+    name: Test (Elixir / Windows / MSVC)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: ./.github/actions/setup-unicode-test-data
+
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          otp-version: '29'
+          elixir-version: '1.20'
+
+      # After setup-beam, so that the exported PATH keeps Erlang and Elixir.
+      - uses: ./.github/actions/setup-msvc
+
+      # PowerShell, not Bash: Git Bash puts its own link.exe ahead of the MSVC linker. The NIF is
+      # built with Makefile.win through nmake, with warnings as errors.
+      - name: Test Elixir package
+        shell: pwsh
+        working-directory: src/elixir
+        env:
+          CFLAGS: /O2 /WX
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          mix deps.get
+          mix test --warnings-as-errors
+          $env:MOJIBAKE_FEATURES = "none"
+          mix test --warnings-as-errors
+
   rust-windows:
     name: Test (Rust / Windows / MSVC)
     runs-on: windows-latest

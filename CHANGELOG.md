@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whose levels the NIF keeps, and `levels/1`, `chars/1`, `reorder/2`, `runs/2`, and `visual/2`
   lay out its lines. It passes `BidiCharacterTest.txt`
 - An Elixir example in `examples/elixir`, run with `make -C examples example-elixir`
+- Elixir: precompiled NIFs for Linux (x86_64 and aarch64, glibc), macOS (x86_64 and arm64), and
+  Windows (x86_64), downloaded from the GitHub release and checked against `checksum.exs`, so
+  that installing the package needs no compiler there. Other platforms, and packages built with
+  fewer features or `MOJIBAKE_BUILD=1`, compile from source. The `Elixir precompiled NIFs`
+  workflow builds, checks, and uploads them
+- Elixir: Windows support with MSVC, through `Makefile.win` and `nmake`, tested in CI
 
 ### Changed
 - Updated Attractor to 1.1.0

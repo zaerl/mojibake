@@ -312,7 +312,7 @@ To release the crates:
 
 The Elixir package lives in `src/elixir/`; its user-facing documentation is
 [src/elixir/README.md](src/elixir/README.md). It needs Elixir 1.15 or newer, Erlang/OTP, a C
-compiler, and `make`.
+compiler, and `make`, or MSVC and `nmake` on Windows.
 
 ### Building and testing
 
@@ -327,8 +327,12 @@ and builds the docs, with warnings as errors for both the Elixir code and the C 
 (`ELIXIR_CFLAGS`, `-O2 -Werror` by default). Extra `mix test` flags go in `ARGS`, for example
 `make test-elixir ARGS="--only conformance"`. Inside `src/elixir`, plain `mix test` works too.
 
-The NIF is `c_src/mojibake_nif.c`, built by `src/elixir/Makefile` through `elixir_make`. `mix.exs`
-finds the C sources in this order:
+The NIF is `c_src/mojibake_nif.c`, built through `elixir_make` by `src/elixir/Makefile`, or by
+`src/elixir/Makefile.win` with MSVC and `nmake` on Windows. `mix.exs` hands `Makefile.win` its
+source paths and directories in Windows form, since `nmake` cannot compute them; run `mix` there
+from PowerShell or a Developer Command Prompt, not Git Bash, whose `link.exe` hides the MSVC
+linker. Inside the repository the package always compiles the NIF. `mix.exs` finds the C sources
+in this order:
 
 1. `MOJIBAKE_SRC_DIR`, when it is set
 2. the repository's `src/` directory, when the package is built inside a Mojibake checkout
@@ -364,28 +368,48 @@ with `make -C examples example-elixir`.
 
 `make package-elixir` copies `src/*.c`, `src/*.h`, `src/CMakeLists.txt`, and `LICENSE` into the
 package, runs `mix hex.build --unpack` into `build-elixir-package/`, and compiles and loads the
-unpacked package from its vendored sources. Like `package-rust`, it refuses to run when `src/` or
-`LICENSE` has uncommitted or untracked changes, unless `ALLOW_DIRTY=1`.
+unpacked package from its vendored sources (`MOJIBAKE_BUILD=1` skips the precompiled NIF). Like
+`package-rust`, it refuses to run when `src/` or `LICENSE` has uncommitted or untracked changes,
+unless `ALLOW_DIRTY=1`.
+
+The package downloads a precompiled NIF with `elixir_make` and `cc_precompiler`, configured in
+`mix.exs`, and compiles from source when there is none for the platform. The NIFs are built for
+NIF version 2.16 (OTP 24 and 25), which every later OTP loads, for `x86_64-linux-gnu`,
+`aarch64-linux-gnu`, `x86_64-apple-darwin`, `aarch64-apple-darwin`, and `x86_64-windows-msvc`.
+`.github/workflows/elixir-precompile.yml` builds them on Ubuntu 22.04, macOS, and Windows, and
+checks with `src/elixir/scripts/check_precompiled.exs` that the unpacked package installs the NIF of
+the runner without compiling it. It runs on pull requests that touch the package or the C sources,
+and for a published release it uploads the NIFs to that release. To check archives yourself:
+
+```sh
+(cd src/elixir && MIX_ENV=prod ELIXIR_MAKE_CACHE_DIR=$PWD/precompiled mix elixir_make.precompile)
+elixir src/elixir/scripts/check_precompiled.exs src/elixir/precompiled
+```
+
+`checksum.exs` lists the checksums of the NIFs of a release. It is git-ignored and written at
+release time; the package includes it when it exists, and `mix hex.publish` refuses to run
+without it.
 
 To release the package:
 
 1. Set `VERSION` and run `make update-version`. It sets the package version in `mix.exs`, the
    README, and the version doctest.
 2. Commit the release and check that `make test-elixir` and `make package-elixir` pass.
-3. Publish from the same clean checkout. `make vendor-elixir` puts the C sources and `LICENSE` in
-   the package, which `mix hex.publish` then uploads along with the docs:
+3. Publish the GitHub release `v<VERSION>`. The `Elixir precompiled NIFs` workflow uploads the five
+   NIFs to it; wait for it to finish, or run it on the tag with `workflow_dispatch`.
+4. From the same clean checkout, download the NIFs to write `checksum.exs`, then publish.
+   `make vendor-elixir` puts the C sources and `LICENSE` in the package, which `mix hex.publish`
+   uploads along with `checksum.exs` and the docs:
 
    ```sh
+   (cd src/elixir && mix elixir_make.checksum --all)
    make vendor-elixir
    (cd src/elixir && mix hex.publish)
    ```
 
-   `mix hex.publish` lists the package files and asks for confirmation; check that
-   `c_src/mojibake/` and `LICENSE` are in the list.
-
-### Not done yet
-
-- precompiled NIFs and Windows support
+   `mix elixir_make.checksum --all` fails if a NIF is missing from the release. `mix hex.publish`
+   lists the package files and asks for confirmation; check that `checksum.exs`,
+   `c_src/mojibake/`, and `LICENSE` are in the list.
 
 ## Reporting Issues
 

@@ -20,9 +20,10 @@ def deps do
 end
 ```
 
-The package compiles its NIF on your machine, so building it needs a C compiler and `make`; on
-Debian and Ubuntu that is the `build-essential` package, and on macOS the Xcode command-line
-tools. It does not build on Windows yet.
+On Linux (x86_64 and aarch64, glibc 2.35 or newer), macOS (Apple silicon and Intel), and
+Windows (x86_64), the package downloads a precompiled NIF and needs no compiler. Elsewhere, such as
+on Alpine Linux or FreeBSD, it compiles the NIF, which needs a C compiler and `make`. See
+[Building from source](#building-from-source).
 
 ```elixir
 {:ok, "é"} = Mojibake.normalize("é")
@@ -115,11 +116,28 @@ config :mojibake, features: []
 ```
 
 Run `mix deps.compile mojibake --force` after changing it. The `MOJIBAKE_FEATURES` environment
-variable, a comma-separated list or `none`, wins over the configuration.
+variable, a comma-separated list or `none`, wins over the configuration. The precompiled NIFs have
+every feature, so a package with fewer features compiles from source.
 
-## Not done yet
+## Building from source
 
-- precompiled NIFs, and Windows
+The package compiles the NIF instead of downloading it when:
+
+- there is no precompiled NIF for the platform, or downloading it fails
+- `config :mojibake, features: [...]` or `MOJIBAKE_FEATURES` leaves out a feature
+- the `MOJIBAKE_BUILD` environment variable is `1` or `true`, or the configuration has
+  `config :elixir_make, :force_build, mojibake: true`
+
+Compiling needs a C11 compiler and `make`: on Debian and Ubuntu the `build-essential` package, on
+Alpine `build-base`, and on macOS the Xcode command-line tools. On Windows it needs Visual Studio
+2019 16.8 or newer with the C++ tools: run `mix` from an x64 Native Tools Command Prompt, so that
+`cl` and `nmake` are on the `PATH`. The C sources ship with the package; no CMake or system library
+is needed.
+
+The precompiled NIFs are assets of the [GitHub releases](https://github.com/zaerl/mojibake/releases)
+of Mojibake, checked against the checksums in the package. To download them from a mirror, set
+`MOJIBAKE_PRECOMPILED_URL` to a URL template with `@{artefact_filename}` for the file name, such as
+`https://mirror.example/mojibake/@{artefact_filename}`.
 
 ## Contributing
 

@@ -1,0 +1,97 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
+# Build the precompiled NIFs of the Elixir package, check that the package installs them without
+# a compiler, and, for a release, upload them to it. The Hex package downloads them from there;
+# see "Packaging and publishing" under "Elixir package" in CONTRIBUTING.md.
+
+name: Elixir precompiled NIFs
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build the NIFs from and upload them to, such as v0.7.0
+        required: true
+  pull_request:
+    paths:
+      - src/*.c
+      - src/*.h
+      - src/CMakeLists.txt
+      - src/elixir/**
+      - .github/workflows/elixir-precompile.yml
+      - .github/actions/setup-msvc/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  precompile:
+    name: Precompile (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: write # gh release upload
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu-22.04 sets the glibc the Linux NIFs need (2.35). macos-latest builds both macOS
+        # NIFs, and ubuntu-22.04 the aarch64 Linux one with a cross compiler; only the NIF of
+        # the runner itself can be checked.
+        os: [ubuntu-22.04, macos-latest, windows-latest]
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag || '' }}
+
+      # OTP 25 has NIF version 2.16, the one in make_precompiler_nif_versions in
+      # src/elixir/mix.exs. A NIF built for it also loads on every later OTP.
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          otp-version: '25'
+          elixir-version: '1.15'
+
+      - name: Install the aarch64 Linux cross compiler
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - if: runner.os == 'Windows'
+        uses: ./.github/actions/setup-msvc
+
+      # PowerShell everywhere: Git Bash puts its own link.exe ahead of the MSVC linker.
+      - name: Precompile
+        shell: pwsh
+        working-directory: src/elixir
+        env:
+          MIX_ENV: prod
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $env:ELIXIR_MAKE_CACHE_DIR = Join-Path $env:GITHUB_WORKSPACE "precompiled"
+          mix deps.get
+          mix elixir_make.precompile
+          Get-ChildItem $env:ELIXIR_MAKE_CACHE_DIR
+
+      - name: Check that the package installs the NIF without compiling
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          elixir src/elixir/scripts/check_precompiled.exs precompiled
+
+      - name: Upload the NIFs to the release
+        if: env.TAG != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" precompiled/*.tar.gz --clobber
