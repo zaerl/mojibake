@@ -16,4 +16,9 @@ exclude =
     [:conformance]
   end
 
-ExUnit.start(exclude: exclude)
+# Tests tagged with an optional C feature run only when it is compiled in.
+missing_features =
+  for feature <- [:names, :collation, :idna, :security] -- Mojibake.features(),
+      do: {:feature, feature}
+
+ExUnit.start(exclude: exclude ++ missing_features)
