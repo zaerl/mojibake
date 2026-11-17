@@ -110,11 +110,11 @@ export async function generateLocales(properties: Property[]) {
   writeFileSync('../../src/locales.h', fileContent);
 
   // Fill locales.ts Locale.
-  fileContent = readFileSync('../../src/api/locales.ts', 'utf-8');
+  fileContent = readFileSync('../../src/wasm/locales.ts', 'utf-8');
 
   fileContent = substituteBlock(fileContent, "export enum Locale {\n", "\n};", alignComments(enumEntries(''), '  '));
 
-  writeFileSync('../../src/api/locales.ts', fileContent);
+  writeFileSync('../../src/wasm/locales.ts', fileContent);
 
   // mjb_script codes, in the same order as the unicode.h enum: 0 is "no value", the Script
   // property values, then the UTS #39 augmented scripts.

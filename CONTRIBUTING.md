@@ -9,13 +9,13 @@ If you make changes to these files, they will likely be rewritten when `make gen
 you see "This file/enum/function is automatically generated. Do not edit", don't do it.
 
 1. `src/unicode-data.h` file
-2. `src/api/mojibake.d.ts` file
-3. `src/api/locales.ts` file
+2. `src/wasm/mojibake.d.ts` file
+3. `src/wasm/locales.ts` file
 4. `src/rust/mojibake-sys/src/functions.rs` file
 5. `tests/example.c` and `tests/ext/cpp/example.cpp` files
 6. `API.md` file
 7. `src/mojibake.h` functions list
-8. `src/unicode.h` and `src/api/unicode.ts` enumerations
+8. `src/unicode.h` and `src/wasm/unicode.ts` enumerations
 9. `src/locales.h` enumeration and `src/locales.c` tables
 10. `src/properties.c` tables
 11. `mjb_bidi_brackets` and `mjb_bidi_mirroring` arrays in `src/bidi.c`
@@ -106,7 +106,7 @@ nmake /F Makefile.nmake wasm
 ```
 
 This builds the module in `build-wasm/`, copies `mojibake.js` and `mojibake.wasm` into
-`src/api/`, and regenerates the demo site in `src/site/`. Use `make build-api` to also build the
+`src/wasm/`, and regenerates the demo site in `src/site/`. Use `make build-api` to also build the
 TypeScript package.
 
 You can run a local server with:

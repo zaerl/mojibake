@@ -36,7 +36,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /src/api
+    directory: /src/wasm
     schedule:
       interval: weekly
       day: monday

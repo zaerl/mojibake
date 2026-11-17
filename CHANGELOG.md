@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated Attractor to 1.1.0
+- Moved `src/api` to `src/wasm`
 
 ### Fixed
 - `mjb_codepoint_info` returns a record for surrogates (U+D800 to U+DFFF, category Cs) and

@@ -292,7 +292,7 @@ API and design.
 
 ### WebAssembly and TypeScript
 
-`src/api` packages the library compiled with Emscripten behind a typed TypeScript API for Node and
+`src/wasm` packages the library compiled with Emscripten behind a typed TypeScript API for Node and
 browsers. It powers the [demo site](https://mojibake.zaerl.com).
 
 ### Other languages

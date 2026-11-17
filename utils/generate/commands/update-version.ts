@@ -32,18 +32,18 @@ export async function updateVersion() {
   fileContent = substituteBlock(fileContent, '"version": "', '",\n', v.version);
   writeFileSync('package.json', fileContent);
 
-  fileContent = readFileSync('../../src/api/package.json', 'utf-8');
+  fileContent = readFileSync('../../src/wasm/package.json', 'utf-8');
   fileContent = substituteBlock(fileContent, '"version": "', '",\n', v.version);
-  writeFileSync('../../src/api/package.json', fileContent);
+  writeFileSync('../../src/wasm/package.json', fileContent);
 
-  fileContent = readFileSync('../../src/api/tests/index.ts', 'utf-8');
+  fileContent = readFileSync('../../src/wasm/tests/index.ts', 'utf-8');
   fileContent = substituteBlock(fileContent, 'mojibake.version(), \'', '-WASM', v.version);
   fileContent = substituteBlock(fileContent, 'versionNumber(), ', ',', hexNumber);
-  writeFileSync('../../src/api/tests/index.ts', fileContent);
+  writeFileSync('../../src/wasm/tests/index.ts', fileContent);
 
-  fileContent = readFileSync('../../src/api/tests/browser.html', 'utf-8');
+  fileContent = readFileSync('../../src/wasm/tests/browser.html', 'utf-8');
   fileContent = substituteBlock(fileContent, 'mojibake.version(), \'', '-WASM', v.version);
-  writeFileSync('../../src/api/tests/browser.html', fileContent);
+  writeFileSync('../../src/wasm/tests/browser.html', fileContent);
 
   // Rust crates: the workspace version, the mojibake-sys dependency, and both lockfile entries
   fileContent = readFileSync('../../src/rust/Cargo.toml', 'utf-8');
@@ -108,8 +108,11 @@ export async function updateVersion() {
   const steps = [
     'make wasm',
     'make amalgamation',
-    'npm i in utils/generate',
-    'npm i in src/api',
+    'cd utils/generate',
+    'npm i',
+    'cd ../../src/wasm',
+    'npm i',
+    'cd ../../',
     `Update CHANGELOG.md: add a [${v.version}] section`,
     `git commit --signoff -am "Update version to ${v.version}"`,
     // package-rust refuses to run while src/ has uncommitted changes, so it follows the commit

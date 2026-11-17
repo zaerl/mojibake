@@ -15,7 +15,7 @@ import { getVersion, substituteBlock, substituteText } from '../utils';
 
 const SOURCE_DIR = '../../src/site';
 const BUILD_DIR = '../../build-wasm/src';
-const API_DIST_DIR = '../../src/api/dist';
+const API_DIST_DIR = '../../src/wasm/dist';
 const API_ROUTE = '/api/';
 const SERVE_PORT = 6251;
 const HIGHLIGHT_THEMES = {

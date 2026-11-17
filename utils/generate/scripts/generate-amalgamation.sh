@@ -21,8 +21,8 @@ cp ../../build-amalgamation/mojibake.h ../../src/ui/Mojibake/Mojibake/mojibake.h
 cp ../../build-wasm/src/mojibake.js ../../build-amalgamation/mojibake.js
 cp ../../build-wasm/src/mojibake.wasm ../../build-amalgamation/mojibake.wasm
 
-cp ../../build-wasm/src/mojibake.js ../../src/api/mojibake.js
-cp ../../build-wasm/src/mojibake.wasm ../../src/api/mojibake.wasm
+cp ../../build-wasm/src/mojibake.js ../../src/wasm/mojibake.js
+cp ../../build-wasm/src/mojibake.wasm ../../src/wasm/mojibake.wasm
 
 VERSION=$(tr -d ' \n.' < ../../VERSION)
 

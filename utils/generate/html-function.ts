@@ -142,12 +142,34 @@ export class CFunction implements MojibakeFunction {
     return fn;
   }
 
+  private formatLine(line: string, nl = '\n', maxLine: number = 100): string {
+    const words = line.split(/\s+/);
+    let nlLength = nl === '\n' ? 0 : nl.length;
+    let ret = '';
+    let i = 0;
+    let addedNl = false;
+
+    for(const word of words) {
+      if(i + word.length + 1 > maxLine) {
+        ret += nl;
+        i = nlLength;
+        addedNl = true;
+      }
+
+      ret += `${i > 0 && !addedNl ? ' ' : ''}${word}`;
+      i += word.length + 1;
+      addedNl = false;
+    }
+
+    return ret;
+  }
+
   formatMD(): string {
     let ret = `## \`${this.getName()}\`\n\n${this.comment}\n\n`;
     ret += `\`\`\`c\n${this.formatSignature()}\n\`\`\``;
 
     if(this.details) {
-      ret += `\n\n${this.details}`;
+      ret += "\n\n" + this.formatLine(this.details);
     }
 
     if(this.args.length) {
@@ -158,13 +180,13 @@ export class CFunction implements MojibakeFunction {
           line += `. ${arg.ownership}`;
         }
 
-        return line;
+        return this.formatLine(line, '\n  ');
       }).join('\n');
     }
 
     if(this.returns?.length) {
       ret += '\n\n**Returns**\n\n' + this.returns.map(
-        value => `- \`${value.value}\` - ${value.description}`
+        value => this.formatLine(`- \`${value.value}\` - ${value.description}`, '\n  ')
       ).join('\n');
     }
 
@@ -173,9 +195,10 @@ export class CFunction implements MojibakeFunction {
     }
 
     if(this.related?.length) {
-      ret += '\n\nSee also: ' + this.related.map(
+      ret += '\n\n';
+      ret += this.formatLine('See also: ' + this.related.map(
         name => `[\`${name}\`](#${name})`
-      ).join(', ') + '.';
+      ).join(', ') + '.');
     }
 
     if(this.specs?.length) {

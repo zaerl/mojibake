@@ -70,7 +70,7 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: |
-            src/api/package-lock.json
+            src/wasm/package-lock.json
             utils/generate/package-lock.json
 
       - name: Install generator dependencies
@@ -82,11 +82,11 @@ jobs:
         run: npm exec -- tsc --noEmit
 
       - name: Install API dependencies
-        working-directory: src/api
+        working-directory: src/wasm
         run: npm ci
 
       - name: Typecheck API
-        working-directory: src/api
+        working-directory: src/wasm
         run: npm run typecheck
 
   generated:

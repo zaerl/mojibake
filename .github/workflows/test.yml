@@ -298,7 +298,7 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: |
-            src/api/package-lock.json
+            src/wasm/package-lock.json
             utils/generate/package-lock.json
 
       - uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 # v16
@@ -311,7 +311,7 @@ jobs:
         run: npm ci
 
       - name: Install API dependencies
-        working-directory: src/api
+        working-directory: src/wasm
         run: npm ci
 
       - name: Use checked-in Unicode payload
@@ -321,7 +321,7 @@ jobs:
         run: make sync-api-wasm WARNINGS_AS_ERRORS=ON
 
       - name: Test Node and browser runtimes
-        working-directory: src/api
+        working-directory: src/wasm
         env:
           MJB_BROWSER: google-chrome
         run: npm test
