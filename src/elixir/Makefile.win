@@ -1,0 +1,45 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+#
+# Build the Mojibake NIF with MSVC and nmake, from a Developer Command Prompt or any shell where
+# cl.exe is on the PATH. elixir_make runs this from `mix compile` on Windows and sets:
+#
+#   ERTS_INCLUDE_DIR        the directory that holds erl_nif.h
+#
+# mix.exs also sets, with Windows paths:
+#
+#   MOJIBAKE_SRC_DIR        the directory that holds the C library sources
+#   MOJIBAKE_SOURCE_PATHS   the C library sources, from the SOURCES block of its CMakeLists.txt
+#   MOJIBAKE_DEFINES        the -DMJB_FEATURE_* flags
+#   MOJIBAKE_OBJ_DIR        the directory for object files, which mix.exs creates
+#   MOJIBAKE_PRIV_DIR       the directory that gets mojibake_nif.dll, which mix.exs creates
+#   MOJIBAKE_FLAGS_FILE     a file that changes when the compiler flags change
+#
+# Paths must not contain spaces.
+
+!IFNDEF MOJIBAKE_PRIV_DIR
+!ERROR MOJIBAKE_PRIV_DIR is not set: build with `mix compile`
+!ENDIF
+
+!IFNDEF CFLAGS
+CFLAGS = /O2
+!ENDIF
+
+NIF = $(MOJIBAKE_PRIV_DIR)\mojibake_nif.dll
+
+# /utf-8 reads the sources as UTF-8. /LD builds a DLL; the import library and the export file go
+# to the object directory, so that the priv directory only gets the DLL.
+NIF_CFLAGS = /nologo /std:c11 /utf-8 /W3 $(CFLAGS) /I"$(ERTS_INCLUDE_DIR)" \
+	/I"$(MOJIBAKE_SRC_DIR)" $(MOJIBAKE_DEFINES)
+
+all: $(NIF)
+
+$(NIF): c_src\mojibake_nif.c $(MOJIBAKE_SOURCE_PATHS) $(MOJIBAKE_SRC_DIR)\*.h $(MOJIBAKE_FLAGS_FILE)
+	cl $(NIF_CFLAGS) /Fo"$(MOJIBAKE_OBJ_DIR)\\" c_src\mojibake_nif.c $(MOJIBAKE_SOURCE_PATHS) \
+		/LD /Fe"$(NIF)" /link /IMPLIB:"$(MOJIBAKE_OBJ_DIR)\mojibake_nif.lib"
+
+clean:
+	if exist "$(MOJIBAKE_OBJ_DIR)\*.obj" del /q "$(MOJIBAKE_OBJ_DIR)\*.obj"
+	if exist "$(MOJIBAKE_OBJ_DIR)\mojibake_nif.*" del /q "$(MOJIBAKE_OBJ_DIR)\mojibake_nif.*"
+	if exist "$(NIF)" del /q "$(NIF)"

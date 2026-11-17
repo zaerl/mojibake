@@ -277,7 +277,7 @@ API and design.
 `src/elixir` is a Mix project that compiles the C library into a NIF. It covers normalization,
 locale-aware casing, caseless matching, segmentation, line breaking, terminal width, character
 data (properties, names, scripts, blocks, emoji, and Hangul), collation, IDNA, confusables,
-identifiers, encodings, BCP 47 tags, and bidirectional text.
+identifiers, encodings, BCP 47 tags, and bidirectional text, on Linux, macOS, and Windows.
 It is not on Hex yet; depend on a checkout with `{:mojibake, path: "path/to/mojibake/src/elixir"}`:
 
 ```elixir

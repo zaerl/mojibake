@@ -375,8 +375,8 @@ vendor-elixir:
 	@cp LICENSE src/elixir/LICENSE
 
 # Build the Hex package, then unpack it outside src/ and check that it compiles and loads from the
-# vendored sources alone. Nothing is published. The packaged sources must be committed, unless
-# ALLOW_DIRTY=1
+# vendored sources alone; MOJIBAKE_BUILD=1 skips the precompiled NIF. Nothing is published. The
+# packaged sources must be committed, unless ALLOW_DIRTY=1
 ELIXIR_PACKAGE_DIR = build-elixir-package
 
 package-elixir: vendor-elixir
@@ -389,7 +389,7 @@ package-elixir: vendor-elixir
 	@rm -rf build-elixir-package
 	cd src/elixir && mix deps.get && mix hex.build --unpack -o ../../$(ELIXIR_PACKAGE_DIR)
 	cd $(ELIXIR_PACKAGE_DIR) && MIX_ENV=prod mix deps.get --only prod
-	cd $(ELIXIR_PACKAGE_DIR) && env -u MOJIBAKE_SRC_DIR MIX_ENV=prod \
+	cd $(ELIXIR_PACKAGE_DIR) && env -u MOJIBAKE_SRC_DIR MOJIBAKE_BUILD=1 MIX_ENV=prod \
 		mix run --no-start -e 'IO.puts("Mojibake " <> Mojibake.version())'
 
 # Run tests in Docker container

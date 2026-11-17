@@ -6,3 +6,5 @@
 /LICENSE
 /mojibake-*.tar
 erl_crash.dump
+/checksum.exs
+/precompiled/
