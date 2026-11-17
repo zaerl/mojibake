@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Jurchen Character (U+18E00 to U+19191, "JURCHEN CHARACTER-*") and Seal Character (U+3D000 to
   U+3FC3F, "SMALL SEAL CHARACTER-*") ranges are handled, with the new
   `MJB_JURCHEN_CHARACTER_START`/`_END` and `MJB_SEAL_CHARACTER_START`/`_END` limits
+- `mjb_codepoint_info` returns `MJB_STATUS_NOT_FOUND` for the unassigned U+18CDB to U+18CFE
+  instead of a "KHITAN SMALL SCRIPT CHARACTER-*" record
 - `MJB_FILTER_LIMIT_COMBINING` no longer restarts its count at a Default_Ignorable_Code_Point
   character, so inserting U+200D ZERO WIDTH JOINER between runs of marks cannot stack more than
   `MJB_FILTER_MAX_COMBINING_MARKS` marks on one letter

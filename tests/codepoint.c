@@ -459,6 +459,17 @@ ATT_TEST(codepoint) {
     ATT_ASSERT_CHARACTER_NAME(0x18B00, "KHITAN SMALL SCRIPT CHARACTER-18B00",
         "KHITAN SMALL SCRIPT CHARACTER-18B00");
 
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18CDA, &character), MJB_STATUS_OK,
+        "KHITAN SMALL SCRIPT CHARACTER-18CDA");
+    ATT_ASSERT_CHARACTER_NAME(0x18CDA, "KHITAN SMALL SCRIPT CHARACTER-18CDA",
+        "KHITAN SMALL SCRIPT CHARACTER-18CDA");
+
+    // U+18CDB to U+18CFE are unassigned
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18CDB, &character), MJB_STATUS_NOT_FOUND,
+        "U+18CDB is unassigned");
+    ATT_ASSERT_STATUS(mjb_codepoint_info(0x18CFE, &character), MJB_STATUS_NOT_FOUND,
+        "U+18CFE is unassigned");
+
     // Last khitan small script character
     ATT_ASSERT_STATUS(mjb_codepoint_info(0x18CFF, &character), MJB_STATUS_OK,
         "KHITAN SMALL SCRIPT CHARACTER-18CFF");
