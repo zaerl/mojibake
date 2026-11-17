@@ -16,7 +16,7 @@ handling avoids.)
 
 ```elixir
 def deps do
-  [{:mojibake, "~> 0.7"}]
+  [{:mojibake, "~> 0.8"}]
 end
 ```
 

@@ -43,7 +43,7 @@ collators, and the remaining UTS #39 identifier checks are planned; see the
 ## Quick start
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
-C/C++ project. Download it here [mojibake-amalgamation-070.zip](https://github.com/zaerl/mojibake/releases/download/v0.7.0/mojibake-amalgamation-070.zip).
+C/C++ project. Download it here [mojibake-amalgamation-080.zip](https://github.com/zaerl/mojibake/releases/download/v0.8.0/mojibake-amalgamation-080.zip).
 
 ```c
 #include <stdio.h>
@@ -216,7 +216,7 @@ include(FetchContent)
 FetchContent_Declare(
     Mojibake
     GIT_REPOSITORY https://github.com/zaerl/mojibake.git
-    GIT_TAG v0.7.0
+    GIT_TAG v0.8.0
 )
 FetchContent_MakeAvailable(Mojibake)
 
@@ -251,7 +251,7 @@ crates.io, but its library is still imported as `mojibake`:
 
 ```toml
 [dependencies]
-mojibake-rs = "0.7"
+mojibake-rs = "0.8"
 ```
 
 ```rust

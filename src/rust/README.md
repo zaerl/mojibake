@@ -19,7 +19,7 @@ Unicode handling avoids.)
 
 ```toml
 [dependencies]
-mojibake-rs = "0.7"
+mojibake-rs = "0.8"
 ```
 
 The package is named `mojibake-rs` because `mojibake` is taken on crates.io. The library itself is

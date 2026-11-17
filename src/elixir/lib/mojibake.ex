@@ -556,7 +556,7 @@ defmodule Mojibake do
   ## Examples
 
       iex> Mojibake.version()
-      "0.7.0"
+      "0.8.0"
   """
   @spec version() :: String.t()
   def version, do: Nif.version()

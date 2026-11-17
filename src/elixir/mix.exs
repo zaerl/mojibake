@@ -5,7 +5,7 @@
 defmodule Mojibake.MixProject do
   use Mix.Project
 
-  @version "0.7.0"
+  @version "0.8.0"
   @source_url "https://github.com/zaerl/mojibake"
 
   # Precompiled NIFs are assets of the GitHub release of each version, built by
