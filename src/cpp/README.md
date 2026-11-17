@@ -99,7 +99,8 @@ mjb::nfc("e\xCC\x81", mjb::encoded(out, MJB_ENC_UTF_16LE)); // "\xE9\0": bytes i
 | Encoding | `convert_encoding(input, out)`, `convert_encoding<char16_t>(input)`, `convert_encoding(input, encoding)` |
 
 ```cpp
-std::string cleaned = mjb::filter("a\x01  b", mjb::Filter::Controls | mjb::Filter::CollapseSpaces);
+std::string cleaned =
+    mjb::filter("a\x01  b", mjb::Filter::Controls | mjb::Filter::CollapseSpaces); // "a b"
 std::u16string utf16 = mjb::convert_encoding<char16_t>("caf\xC3\xA9"); // u"café"
 std::string utf32be = mjb::convert_encoding("A", MJB_ENC_UTF_32BE); // "\0\0\0A"
 ```
@@ -236,7 +237,7 @@ iterate the segments themselves, use the segment ranges.
 ```cpp
 for(const mjb::BreakResult &result : mjb::line_breaks("a b")) {
     if(result.is_mandatory()) {
-        // a mandatory break at result.position
+        // a mandatory break at result.position: once, at the end of the text (3)
     }
 }
 
