@@ -38,7 +38,10 @@ defmodule CheckPrecompiled do
 
       # CC=false makes a source build fail on Unix; the missing object directory proves it on
       # Windows too.
-      mix(["run", "--no-start", "-e", smoke_test()], package, [
+      # A file, not -e: cmd.exe would strip the quotes from the code.
+      File.write!(Path.join(package, "smoke_test.exs"), smoke_test())
+
+      mix(["run", "--no-start", "smoke_test.exs"], package, [
         {"MIX_ENV", "prod"},
         {"ELIXIR_MAKE_CACHE_DIR", cache},
         {"CC", "false"},
@@ -101,15 +104,20 @@ defmodule CheckPrecompiled do
 
   # mix is a batch file on Windows, which only cmd.exe runs.
   defp mix(args, dir, env) do
-    {command, args} =
+    IO.puts("$ mix #{Enum.join(args, " ")}")
+
+    {command, command_args} =
       case :os.type() do
         {:win32, _} -> {"cmd", ["/c", "mix" | args]}
         _ -> {"mix", args}
       end
 
-    IO.puts("$ mix #{Enum.join(args, " ")}")
-
-    case System.cmd(command, args, cd: dir, env: env, into: IO.stream(), stderr_to_stdout: true) do
+    case System.cmd(command, command_args,
+           cd: dir,
+           env: env,
+           into: IO.stream(),
+           stderr_to_stdout: true
+         ) do
       {_, 0} -> :ok
       {_, status} -> fail("mix #{Enum.join(args, " ")} exited with status #{status}")
     end
