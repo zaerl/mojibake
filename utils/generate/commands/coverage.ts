@@ -244,7 +244,7 @@ the official tests included in the standard:
 function main(): void {
   const args = process.argv.slice(2);
   const testExecutable = findTestExecutable(args);
-  const javascriptTestFile = join(repoRoot, 'src', 'api', 'tests', 'index.ts');
+  const javascriptTestFile = join(repoRoot, 'src', 'wasm', 'tests', 'index.ts');
 
   if(!existsSync(javascriptTestFile)) {
     console.error(`Error: ${javascriptTestFile} is not a valid file`);

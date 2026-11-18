@@ -9,7 +9,7 @@
 # An application depends on the package from Hex instead:
 #
 #     def deps do
-#       [{:mojibake, "~> 0.7"}]
+#       [{:mojibake, "~> 0.8"}]
 #     end
 Mix.install([{:mojibake, path: Path.expand("../../src/elixir", __DIR__)}])
 

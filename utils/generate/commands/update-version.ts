@@ -76,6 +76,10 @@ export async function updateVersion() {
   fileContent = substituteBlock(fileContent, 'iex> Mojibake.version()\n      "', '"', v.version);
   writeFileSync('../../src/elixir/lib/mojibake.ex', fileContent);
 
+  fileContent = readFileSync('../../examples/elixir/example.exs', 'utf-8');
+  fileContent = substituteBlock(fileContent, '"~> ', '"', v.versionShort);
+  writeFileSync('../../examples/elixir/example.exs', fileContent);
+
   const zip = `mojibake-amalgamation-${v.major}${v.minor}${v.revision}`;
   fileContent = readFileSync('../../README.md', 'utf-8');
   fileContent = substituteBlock(fileContent, 'Download it here [', '.zip)',
